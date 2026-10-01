@@ -2,16 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
   <title>Parent Voice Study — Survey | Soter AI</title>
   <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="assets/icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Header -->
   <header class="header" aria-label="Site header">
     <div class="header-container">
       <a href="index.html" class="logo" aria-label="Soter AI home">
@@ -27,23 +27,34 @@
 
   <a class="skip-link" href="#survey-main">Skip to survey</a>
 
-  <main class="survey-main" id="survey-main" aria-roledescription="survey" aria-label="Parent Voice Survey">
+  <main class="survey-main" id="survey-main" aria-label="Parent Voice Survey">
+    <h1 class="visually-hidden">Parent Voice Study survey</h1>
 
-    <div class="survey-intro">
-      <p class="overline">Parent Voice Study</p>
-      <p class="survey-note">Your response is voluntary and confidential. You can answer anonymously — you'll move through five short sections, and you can go back at any time.</p>
-    </div>
+    <div class="stage" id="stage">
 
-    <!-- Step 01: About You -->
-    <section class="step step-01" id="step-01" aria-label="Step 1: About You" hidden>
-      <div class="step-progress">01</div>
-      <div class="step-inner">
-        <h2 class="step-heading">ABOUT YOU</h2>
-        <p class="step-intro">Help us understand your role as a parent or caregiver.</p>
+      <div class="survey-status">
+        <div class="status-row" aria-live="polite" aria-atomic="true">
+          <span class="status-section" id="status-section">About You</span>
+          <span class="status-count" id="status-count">Section 1 of 5</span>
+        </div>
+        <div class="progress" id="progress" role="progressbar" aria-label="Survey progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
 
-        <div class="form-group">
-          <span class="form-label" id="role-label">How would you describe your role?</span>
-          <div class="form-radio-group" role="radiogroup" aria-labelledby="role-label" aria-describedby="role-hint">
+      <div class="question-flow" id="question-flow">
+
+        <section class="flow-item section-card is-active" data-flow="section" data-qid="s-about-you" data-section="About You">
+          <span class="section-accent" aria-hidden="true"></span>
+          <h2 class="section-title" id="s-about-you" tabindex="-1">About You</h2>
+          <p class="section-intro">Help us understand your role as a parent or caregiver.</p>
+          <p class="survey-note">Your response is voluntary and confidential. You can answer anonymously — you'll move through five short sections, and you can go back at any time.</p>
+        </section>
+
+        <section class="flow-item question" data-flow="question" data-qid="q-role" data-section="About You" data-required="true" data-error="Please select your role.">
+          <h2 class="question-text" id="q-role" tabindex="-1">How would you describe your role?</h2>
+          <p class="question-hint" id="q-role-hint">Select the option that best describes your role.</p>
+          <div class="q-controls" role="radiogroup" aria-labelledby="q-role" aria-describedby="q-role-hint">
             <label class="form-radio">
               <input type="radio" name="role" value="Parent">
               <span>Parent</span>
@@ -61,12 +72,12 @@
               <span>Another caring role</span>
             </label>
           </div>
-          <p class="form-hint" id="role-hint">Select the option that best describes your role.</p>
-        </div>
+        </section>
 
-        <div class="form-group">
-          <span class="form-label" id="children-label">How many children are you currently raising or caring for?</span>
-          <div class="form-radio-group" role="radiogroup" aria-labelledby="children-label">
+        <section class="flow-item question" data-flow="question" data-qid="q-children" data-section="About You" data-required="true" data-error="Please select the number of children.">
+          <h2 class="question-text" id="q-children" tabindex="-1">How many children are you currently raising or caring for?</h2>
+          <p class="question-hint" id="q-children-hint">Select the number of children you are currently raising or caring for.</p>
+          <div class="q-controls" role="radiogroup" aria-labelledby="q-children" aria-describedby="q-children-hint">
             <label class="form-radio">
               <input type="radio" name="children" value="1">
               <span>1</span>
@@ -88,26 +99,18 @@
               <span>5 or more</span>
             </label>
           </div>
-          <p class="form-hint">Select the number of children you are currently raising or caring for.</p>
-        </div>
+        </section>
 
-        <div class="step-actions">
-          <a href="index.html" class="btn btn-secondary btn-home">← Home</a>
-          <button type="button" class="btn btn-primary btn-next">Continue →</button>
-        </div>
-      </div>
-    </section>
+        <section class="flow-item section-card" data-flow="section" data-qid="s-communication" data-section="Communication">
+          <span class="section-accent" aria-hidden="true"></span>
+          <h2 class="section-title" id="s-communication" tabindex="-1">Communication</h2>
+          <p class="section-intro">Tell us about your experience communicating with your child or children.</p>
+        </section>
 
-    <!-- Step 02: Communication -->
-    <section class="step step-02" id="step-02" aria-label="Step 2: Communication" hidden>
-      <div class="step-progress">02</div>
-      <div class="step-inner">
-        <h2 class="step-heading">COMMUNICATION</h2>
-        <p class="step-intro">Tell us about your experience communicating with your child or children.</p>
-
-        <div class="form-group">
-          <span class="form-label" id="comm-label">How would you describe communication between you and your child or children?</span>
-          <div class="form-radio-group" role="radiogroup" aria-labelledby="comm-label">
+        <section class="flow-item question" data-flow="question" data-qid="q-comm-describe" data-section="Communication" data-required="true" data-error="Please describe communication.">
+          <h2 class="question-text" id="q-comm-describe" tabindex="-1">How would you describe communication between you and your child or children?</h2>
+          <p class="question-hint" id="q-comm-describe-hint">Select the option that best describes your situation.</p>
+          <div class="q-controls" role="radiogroup" aria-labelledby="q-comm-describe" aria-describedby="q-comm-describe-hint">
             <label class="form-radio">
               <input type="radio" name="comm-describe" value="Very open">
               <span>Very open</span>
@@ -129,32 +132,26 @@
               <span>We rarely discuss personal matters</span>
             </label>
           </div>
-          <p class="form-hint">Select the option that best describes your situation.</p>
-        </div>
+        </section>
 
-        <div class="form-group">
-          <label class="form-label" for="comm-barriers">What can make open conversation difficult?</label>
-          <textarea class="form-textarea" id="comm-barriers" rows="3" placeholder="Your experiences..." aria-label="What can make open conversation difficult?"></textarea>
-          <p class="form-hint">Examples may include fear of judgement, busy schedules, past disagreements, cultural expectations, or simply not knowing how to begin. Your answer is voluntary.</p>
-        </div>
+        <section class="flow-item question" data-flow="question" data-qid="q-comm-barriers" data-section="Communication" data-required="true" data-error="Please share what makes conversation difficult.">
+          <h2 class="question-text" id="q-comm-barriers"><label for="comm-barriers">What can make open conversation difficult?</label></h2>
+          <p class="question-hint" id="q-comm-barriers-hint">Examples may include fear of judgement, busy schedules, past disagreements, cultural expectations, or simply not knowing how to begin. Your answer is voluntary.</p>
+          <div class="q-controls">
+            <textarea class="form-textarea" id="comm-barriers" rows="3" placeholder="Your experiences..." aria-describedby="q-comm-barriers-hint"></textarea>
+          </div>
+        </section>
 
-        <div class="step-actions">
-          <button type="button" class="btn btn-secondary btn-back">← Back</button>
-          <button type="button" class="btn btn-primary btn-next">Continue →</button>
-        </div>
-      </div>
-    </section>
+        <section class="flow-item section-card" data-flow="section" data-qid="s-experience" data-section="Experience">
+          <span class="section-accent" aria-hidden="true"></span>
+          <h2 class="section-title" id="s-experience" tabindex="-1">Experience</h2>
+          <p class="section-intro">Share a story about a time your child found it difficult to open up.</p>
+        </section>
 
-    <!-- Step 03: Experience -->
-    <section class="step step-03" id="step-03" aria-label="Step 3: Experience" hidden>
-      <div class="step-progress">03</div>
-      <div class="step-inner">
-        <h2 class="step-heading">EXPERIENCE</h2>
-        <p class="step-intro">Share a story about a time your child found it difficult to open up.</p>
-
-        <div class="form-group">
-          <span class="form-label" id="opening-label">Have you experienced a situation where your child found it difficult to open up to you?</span>
-          <div class="form-radio-group" role="radiogroup" aria-labelledby="opening-label">
+        <section class="flow-item question" data-flow="question" data-qid="q-opening-up" data-section="Experience" data-required="true" data-error="Please indicate if this has happened.">
+          <h2 class="question-text" id="q-opening-up" tabindex="-1">Have you experienced a situation where your child found it difficult to open up to you?</h2>
+          <p class="question-hint" id="q-opening-up-hint">Select the option that best applies to your experience.</p>
+          <div class="q-controls" role="radiogroup" aria-labelledby="q-opening-up" aria-describedby="q-opening-up-hint">
             <label class="form-radio">
               <input type="radio" name="child-opening-up" value="Yes">
               <span>Yes</span>
@@ -172,105 +169,105 @@
               <span>I would rather not say</span>
             </label>
           </div>
-          <p class="form-hint">Select the option that best applies to your experience.</p>
-        </div>
+        </section>
 
-        <div class="form-group">
-          <label class="form-label" for="experience-story">If you are comfortable, describe an experience that changed how you think about communicating with your child.</label>
-          <textarea class="form-textarea" id="experience-story" rows="4" placeholder="Share a story..." aria-label="Describe an experience that changed how you think about communicating with your child"></textarea>
-          <p class="form-hint">Your answer is voluntary. Take the time you need.</p>
-        </div>
+        <section class="flow-item question" data-flow="question" data-qid="q-experience-story" data-section="Experience" data-required="true" data-error="Please share your experience.">
+          <h2 class="question-text" id="q-experience-story"><label for="experience-story">If you are comfortable, describe an experience that changed how you think about communicating with your child.</label></h2>
+          <p class="question-hint" id="q-experience-story-hint">Your answer is voluntary. Take the time you need.</p>
+          <div class="q-controls">
+            <textarea class="form-textarea" id="experience-story" rows="4" placeholder="Share a story..." aria-describedby="q-experience-story-hint"></textarea>
+          </div>
+        </section>
 
-        <div class="step-actions">
-          <button type="button" class="btn btn-secondary btn-back">← Back</button>
-          <button type="button" class="btn btn-primary btn-next">Continue →</button>
-        </div>
-      </div>
-    </section>
+        <section class="flow-item section-card" data-flow="section" data-qid="s-what-helps" data-section="What Helps">
+          <span class="section-accent" aria-hidden="true"></span>
+          <h2 class="section-title" id="s-what-helps" tabindex="-1">What Helps</h2>
+          <p class="section-intro">Tell us about the strategies and support that have made a difference.</p>
+        </section>
 
-    <!-- Step 04: What Helps -->
-    <section class="step step-04" id="step-04" aria-label="Step 4: What Helps" hidden>
-      <div class="step-progress">04</div>
-      <div class="step-inner">
-        <h2 class="step-heading">WHAT HELPS</h2>
-        <p class="step-intro">Tell us about the strategies and support that have made a difference.</p>
+        <section class="flow-item question" data-flow="question" data-qid="q-what-helped" data-section="What Helps" data-required="true" data-error="Please share what helped.">
+          <h2 class="question-text" id="q-what-helped"><label for="what-helped">What has helped you communicate better with your child?</label></h2>
+          <p class="question-hint" id="q-what-helped-hint">Your answer is voluntary.</p>
+          <div class="q-controls">
+            <textarea class="form-textarea" id="what-helped" rows="3" placeholder="Your story..." aria-describedby="q-what-helped-hint"></textarea>
+          </div>
+        </section>
 
-        <div class="form-group">
-          <label class="form-label" for="what-helped">What has helped you communicate better with your child?</label>
-          <textarea class="form-textarea" id="what-helped" rows="3" placeholder="Your story..." aria-label="What has helped you communicate better with your child"></textarea>
-          <p class="form-hint">Your answer is voluntary.</p>
-        </div>
+        <section class="flow-item question" data-flow="question" data-qid="q-desired-support" data-section="What Helps" data-required="true" data-error="Please share what support is needed.">
+          <h2 class="question-text" id="q-desired-support"><label for="desired-support">What kind of support do you think parents and children need?</label></h2>
+          <p class="question-hint" id="q-desired-support-hint">Your answer is voluntary.</p>
+          <div class="q-controls">
+            <textarea class="form-textarea" id="desired-support" rows="3" placeholder="Your thoughts..." aria-describedby="q-desired-support-hint"></textarea>
+          </div>
+        </section>
 
-        <div class="form-group">
-          <label class="form-label" for="desired-support">What kind of support do you think parents and children need?</label>
-          <textarea class="form-textarea" id="desired-support" rows="3" placeholder="Your thoughts..." aria-label="What kind of support do you think parents and children need"></textarea>
-          <p class="form-hint">Your answer is voluntary.</p>
-        </div>
+        <section class="flow-item question" data-flow="question" data-qid="q-advice" data-section="What Helps" data-required="true" data-error="Please share your advice.">
+          <h2 class="question-text" id="q-advice"><label for="advice">What would you tell another parent who is struggling to connect with their child?</label></h2>
+          <p class="question-hint" id="q-advice-hint">Your answer is voluntary.</p>
+          <div class="q-controls">
+            <textarea class="form-textarea" id="advice" rows="3" placeholder="Your advice..." aria-describedby="q-advice-hint"></textarea>
+          </div>
+        </section>
 
-        <div class="form-group">
-          <label class="form-label" for="advice">What would you tell another parent who is struggling to connect with their child?</label>
-          <textarea class="form-textarea" id="advice" rows="3" placeholder="Your advice..." aria-label="What would you tell another parent who is struggling to connect with their child"></textarea>
-          <p class="form-hint">Your answer is voluntary.</p>
-        </div>
+        <section class="flow-item section-card" data-flow="section" data-qid="s-privacy" data-section="Privacy">
+          <span class="section-accent" aria-hidden="true"></span>
+          <h2 class="section-title" id="s-privacy" tabindex="-1">Privacy</h2>
+          <p class="section-intro">A few final details before you send your response.</p>
+          <div class="privacy-notice">
+            <p>Your response is voluntary. Please do not include your child's full name, address, phone number, passwords, or other information that could directly identify you or your child.</p>
+          </div>
+        </section>
 
-        <div class="step-actions">
-          <button type="button" class="btn btn-secondary btn-back">← Back</button>
-          <button type="button" class="btn btn-primary btn-next">Continue →</button>
-        </div>
-      </div>
-    </section>
+        <section class="flow-item question" data-flow="question" data-qid="q-anonymous" data-section="Privacy">
+          <h2 class="question-text" id="q-anonymous" tabindex="-1">Submit anonymously</h2>
+          <div class="q-controls">
+            <div class="toggle-row">
+              <label class="toggle-switch" aria-labelledby="q-anonymous">
+                <input type="checkbox" id="anonymous" checked>
+                <span class="slider"></span>
+              </label>
+              <p class="toggle-caption" id="toggle-caption">Submit anonymously</p>
+            </div>
+          </div>
+        </section>
 
-    <!-- Step 05: Privacy -->
-    <section class="step step-05" id="step-05" aria-label="Step 5: Privacy" hidden>
-      <div class="step-progress">05</div>
-      <div class="step-inner">
-        <h2 class="step-heading">PRIVACY</h2>
-        <p class="step-intro">A few final details before you send your response.</p>
+        <section class="flow-item question" data-flow="question" data-qid="q-contact" data-section="Privacy" data-when="not-anonymous">
+          <h2 class="question-text" id="q-contact" tabindex="-1">Your contact details (optional)</h2>
+          <p class="question-hint" id="q-contact-hint">Only provide contact information if you are comfortable being contacted about the study.</p>
+          <div class="q-controls contact-fields">
+            <div class="contact-field">
+              <label class="field-label" for="participant-name">Name (optional)</label>
+              <input type="text" id="participant-name" class="form-input" placeholder="Your name" autocomplete="name" aria-describedby="q-contact-hint">
+            </div>
+            <div class="contact-field">
+              <label class="field-label" for="participant-email">Email (optional)</label>
+              <input type="email" id="participant-email" class="form-input" placeholder="your@email.example.com" autocomplete="email" aria-describedby="q-contact-hint">
+            </div>
+          </div>
+        </section>
 
-        <div class="privacy-notice">
-          <p>Your response is voluntary. Please do not include your child's full name, address, phone number, passwords, or other information that could directly identify you or your child.</p>
-        </div>
-
-        <div class="form-group">
-          <span class="form-label" id="anonymous-label">Submit anonymously</span>
-          <div class="toggle-row">
-            <label class="toggle-switch" aria-labelledby="anonymous-label">
-              <input type="checkbox" id="anonymous" checked>
-              <span class="slider"></span>
+        <section class="flow-item question" data-flow="question" data-qid="q-consent" data-section="Privacy" data-required="true" data-error="Please confirm you understand before submitting.">
+          <h2 class="question-text" id="q-consent" tabindex="-1">Consent</h2>
+          <p class="question-hint" id="q-consent-hint">Required to submit.</p>
+          <div class="q-controls">
+            <label class="form-checkbox">
+              <input type="checkbox" id="consent" aria-describedby="q-consent-hint">
+              <span>I understand that my response is voluntary and may be used to inform Soter AI research and development.</span>
             </label>
-            <p class="toggle-caption" id="toggle-caption">Submit anonymously</p>
           </div>
-        </div>
+        </section>
 
-        <div id="name-email-fields" class="form-group" hidden>
-          <div class="form-row">
-            <div class="form-group half">
-              <label class="form-label" for="participant-name">Name (optional)</label>
-              <input type="text" id="participant-name" class="form-input" placeholder="Your name" autocomplete="name">
-            </div>
-            <div class="form-group half">
-              <label class="form-label" for="participant-email">Email (optional)</label>
-              <input type="email" id="participant-email" class="form-input" placeholder="your@email.example.com" autocomplete="email">
-            </div>
-          </div>
-          <p class="form-hint">Only provide contact information if you are comfortable being contacted about the study.</p>
-        </div>
-
-        <div class="form-group" id="consent-group">
-          <label class="form-checkbox" for="consent">
-            <input type="checkbox" id="consent">
-            <span>I understand that my response is voluntary and may be used to inform Soter AI research and development.</span>
-          </label>
-          <p class="form-hint">Required to submit.</p>
-        </div>
-
-        <div class="step-actions">
-          <button type="button" class="btn btn-secondary btn-back">← Back</button>
-          <button type="submit" class="btn btn-primary" id="submit-btn">Submit response →</button>
-        </div>
       </div>
-    </section>
 
+      <nav class="survey-nav" id="survey-nav" aria-label="Survey navigation">
+        <p class="nav-error" id="nav-error" role="alert" hidden></p>
+        <div class="nav-buttons">
+          <button type="button" class="btn btn-secondary" id="btn-back" aria-label="Go back to previous question">← Back</button>
+          <button type="button" class="btn btn-primary" id="btn-next" aria-label="Continue to next question">Continue →</button>
+        </div>
+      </nav>
+
+    </div>
   </main>
 
   <footer class="site-footer">

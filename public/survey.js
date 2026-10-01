@@ -1,20 +1,32 @@
-// Soter AI Parent Voice Study — Survey page
-// Handles step navigation, privacy toggle, validation, and Firebase submission
+// Soter AI Parent Voice Study — one-question-at-a-time survey engine
+// Sequence, validation, transitions, history, draft persistence, submission
 
 (() => {
   'use strict';
 
-  const steps = Array.from(document.querySelectorAll('.step'));
-  const submitBtn = document.getElementById('submit-btn');
+  const flow = document.getElementById('question-flow');
+  const statusSection = document.getElementById('status-section');
+  const statusCount = document.getElementById('status-count');
+  const progressEl = document.getElementById('progress');
+  const progressFill = document.getElementById('progress-fill');
+  const navEl = document.getElementById('survey-nav');
+  const btnBack = document.getElementById('btn-back');
+  const btnNext = document.getElementById('btn-next');
+  const navError = document.getElementById('nav-error');
   const anonymousInput = document.getElementById('anonymous');
-  const nameEmailFields = document.getElementById('name-email-fields');
   const toggleCaption = document.getElementById('toggle-caption');
-  const consentInput = document.getElementById('consent');
 
-  let currentStep = 0;
-  const stepCount = steps.length;
+  const DRAFT_KEY = 'soter-survey-draft';
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  let surveyData = {
+  const items = Array.from(flow.querySelectorAll('.flow-item'));
+  const sectionCards = items.filter((el) => el.dataset.flow === 'section');
+
+  let currentQid = null;
+  let busy = false;
+  let submitting = false;
+
+  const surveyData = {
     role: '',
     childrenCount: '',
     communication: '',
@@ -31,173 +43,235 @@
     surveyVersion: '1.0'
   };
 
-  function init() {
-    showStep(currentStep);
-    setupEventListeners();
+  function getSequence() {
+    return items.filter(
+      (el) => el.dataset.when !== 'not-anonymous' || !anonymousInput.checked
+    );
   }
 
-  function showStep(stepIndex) {
-    currentStep = stepIndex;
-    steps.forEach((step, index) => {
-      const isActive = index === stepIndex;
-      step.hidden = !isActive;
-      step.classList.toggle('active', isActive);
-    });
-    window.scrollTo({ top: 0, behavior: 'auto' });
+  function indexOfQid(seq, qid) {
+    return seq.findIndex((el) => el.dataset.qid === qid);
   }
 
-  function setupEventListeners() {
-    document.querySelectorAll('.btn-next').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (validateStep(currentStep) && currentStep < stepCount - 1) {
-          showStep(currentStep + 1);
-        }
-      });
-    });
+  function currentElement() {
+    const seq = getSequence();
+    const idx = indexOfQid(seq, currentQid);
+    return idx === -1 ? null : seq[idx];
+  }
 
-    document.querySelectorAll('.btn-back').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (currentStep > 0) {
-          showStep(currentStep - 1);
-        }
-      });
-    });
+  function headingOf(el) {
+    return el.querySelector('.question-text, .section-title');
+  }
 
-    if (submitBtn) {
-      submitBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (validateStep(currentStep)) {
-          submitSurvey();
-        }
-      });
+  function clearError() {
+    navError.hidden = true;
+    navError.textContent = '';
+    flow.querySelectorAll('[aria-invalid="true"]').forEach((el) => {
+      el.removeAttribute('aria-invalid');
+    });
+  }
+
+  function checkQuestion(el) {
+    if (el.dataset.flow !== 'question' || el.dataset.required !== 'true') return null;
+
+    const radio = el.querySelector('input[type="radio"]');
+    if (radio && !el.querySelector(`input[name="${CSS.escape(radio.name)}"]:checked`)) {
+      return { message: el.dataset.error, control: radio };
     }
 
-    // Privacy toggle: anonymous on by default
-    if (anonymousInput) {
-      anonymousInput.addEventListener('change', () => {
-        const isAnonymous = anonymousInput.checked;
-        nameEmailFields.hidden = isAnonymous;
-        toggleCaption.textContent = isAnonymous
-          ? 'Submit anonymously'
-          : 'Submit with my name and email';
-        surveyData.anonymous = isAnonymous;
-        if (isAnonymous) {
-          document.getElementById('participant-name').value = '';
-          document.getElementById('participant-email').value = '';
+    const checkbox = el.querySelector('.form-checkbox input');
+    if (checkbox && !checkbox.checked) {
+      return { message: el.dataset.error, control: checkbox };
+    }
+
+    const field = el.querySelector('.form-textarea, .form-input');
+    if (field && !field.value.trim()) {
+      return { message: el.dataset.error, control: field };
+    }
+
+    return null;
+  }
+
+  function reportError(err) {
+    clearError();
+    navError.textContent = err.message;
+    navError.hidden = false;
+    err.control.setAttribute('aria-invalid', 'true');
+    err.control.focus({ preventScroll: false });
+  }
+
+  function updateChrome(el) {
+    const seq = getSequence();
+    const idx = indexOfQid(seq, el.dataset.qid);
+    const questions = seq.filter((x) => x.dataset.flow === 'question');
+    const isQuestion = el.dataset.flow === 'question';
+
+    statusSection.textContent = el.dataset.section;
+
+    let countText;
+    if (isQuestion) {
+      const n = questions.indexOf(el) + 1;
+      countText = `Question ${n} of ${questions.length}`;
+    } else {
+      const s = sectionCards.findIndex((x) => x.dataset.section === el.dataset.section) + 1;
+      countText = `Section ${s} of ${sectionCards.length}`;
+    }
+    statusCount.textContent = countText;
+
+    let answered = 0;
+    for (let i = 0; i < idx; i++) {
+      if (seq[i].dataset.flow === 'question') answered++;
+    }
+    const pct = questions.length ? Math.round((answered / questions.length) * 100) : 0;
+    progressFill.style.width = pct + '%';
+    progressEl.setAttribute('aria-valuenow', String(pct));
+    progressEl.setAttribute('aria-valuetext', `${countText}, ${pct}% complete`);
+
+    const isFirst = idx === 0;
+    const isLast = idx === seq.length - 1;
+    navEl.classList.toggle('is-first', isFirst);
+    btnBack.hidden = isFirst;
+    btnNext.textContent = isLast ? 'Submit Survey' : 'Continue →';
+    btnNext.setAttribute(
+      'aria-label',
+      isLast ? 'Submit survey' : 'Continue to next question'
+    );
+  }
+
+  function pushStateFor(qid) {
+    try {
+      window.history.pushState({ qid }, '', `${location.pathname}?q=${qid}`);
+    } catch (e) {
+      /* file:// or restricted context — in-page navigation still works */
+    }
+  }
+
+  function goTo(qid, opts = {}) {
+    const push = opts.push !== false;
+    const focus = opts.focus !== false;
+    const onShown = opts.onShown || null;
+
+    const seq = getSequence();
+    const nextIndex = indexOfQid(seq, qid);
+    if (nextIndex === -1) return false;
+
+    const nextEl = seq[nextIndex];
+    if (nextEl.dataset.qid === currentQid) {
+      updateChrome(nextEl);
+      if (onShown) onShown(nextEl);
+      return true;
+    }
+
+    const prevEl = currentElement();
+    const reduced = reducedMotion.matches;
+
+    const finish = () => {
+      if (prevEl) prevEl.classList.remove('is-active', 'is-leaving');
+      nextEl.classList.add('is-active');
+      currentQid = nextEl.dataset.qid;
+      updateChrome(nextEl);
+      clearError();
+      if (focus) {
+        const heading = headingOf(nextEl);
+        if (heading) heading.focus({ preventScroll: true });
+      }
+      window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+      if (push) pushStateFor(currentQid);
+      if (onShown) onShown(nextEl);
+      busy = false;
+    };
+
+    if (!prevEl || !prevEl.classList.contains('is-active') || reduced) {
+      finish();
+      return true;
+    }
+
+    busy = true;
+    prevEl.classList.remove('is-active');
+    prevEl.classList.add('is-leaving');
+    window.setTimeout(finish, 140);
+    return true;
+  }
+
+  function goNext() {
+    if (busy || submitting) return;
+    const seq = getSequence();
+    const idx = indexOfQid(seq, currentQid);
+    if (idx === -1) return;
+    const el = seq[idx];
+
+    if (el.dataset.flow === 'question') {
+      const err = checkQuestion(el);
+      if (err) {
+        reportError(err);
+        return;
+      }
+    }
+
+    if (idx >= seq.length - 1) {
+      submitSurvey();
+      return;
+    }
+
+    goTo(seq[idx + 1].dataset.qid);
+  }
+
+  function goBack() {
+    if (busy || submitting) return;
+    const seq = getSequence();
+    const idx = indexOfQid(seq, currentQid);
+    if (idx > 0) goTo(seq[idx - 1].dataset.qid);
+  }
+
+  function syncAnonymous() {
+    const isAnonymous = anonymousInput.checked;
+    toggleCaption.textContent = isAnonymous
+      ? 'Submit anonymously'
+      : 'Submit with my name and email';
+    if (isAnonymous) {
+      document.getElementById('participant-name').value = '';
+      document.getElementById('participant-email').value = '';
+    }
+  }
+
+  function saveDraft() {
+    try {
+      const data = {};
+      flow.querySelectorAll('input, textarea').forEach((el) => {
+        if (el.type === 'radio') {
+          if (el.checked) data[el.name] = el.value;
+        } else if (el.type === 'checkbox') {
+          data[el.id || el.name] = el.checked;
+        } else {
+          data[el.id || el.name] = el.value;
         }
       });
-      anonymousInput.dispatchEvent(new Event('change'));
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+    } catch (e) {
+      /* storage unavailable */
     }
-
-    // Keyboard navigation between steps
-    document.addEventListener('keydown', (e) => {
-      const tag = document.activeElement?.tagName;
-      if (tag === 'TEXTAREA' || tag === 'INPUT') return;
-      if (e.key === 'ArrowLeft' && currentStep > 0) {
-        e.preventDefault();
-        showStep(currentStep - 1);
-      }
-      if (e.key === 'ArrowRight' && currentStep < stepCount - 1) {
-        e.preventDefault();
-        if (validateStep(currentStep)) {
-          showStep(currentStep + 1);
-        }
-      }
-    });
   }
 
-  function clearErrors(step) {
-    step.querySelectorAll('.form-error').forEach((el) => el.remove());
-    step.querySelectorAll('.form-input, .form-textarea').forEach((el) => {
-      el.style.borderColor = '';
-    });
-    step.querySelectorAll('.form-radio-group').forEach((el) => {
-      el.style.outline = '';
-    });
-  }
-
-  function showError(target, message) {
-    const hint = document.createElement('p');
-    hint.className = 'form-hint form-error';
-    hint.textContent = message;
-    const group = target.closest?.('.form-group') || target.parentNode;
-    group.appendChild(hint);
-  }
-
-  function validateStep(stepIndex) {
-    const step = steps[stepIndex];
-    clearErrors(step);
-    let isValid = true;
-
-    switch (stepIndex) {
-      case 0: {
-        const role = step.querySelector('input[name="role"]:checked');
-        const children = step.querySelector('input[name="children"]:checked');
-        if (!role) {
-          showError(step.querySelector('#role-label')?.nextElementSibling || step, 'Please select your role.');
-          isValid = false;
+  function restoreDraft() {
+    try {
+      const raw = sessionStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      flow.querySelectorAll('input, textarea').forEach((el) => {
+        const key = el.type === 'radio' ? el.name : el.id || el.name;
+        if (!(key in data)) return;
+        const value = data[key];
+        if (el.type === 'radio') {
+          el.checked = value === el.value;
+        } else if (el.type === 'checkbox') {
+          el.checked = Boolean(value);
+        } else {
+          el.value = value;
         }
-        if (!children) {
-          showError(step.querySelector('#children-label')?.nextElementSibling || step, 'Please select the number of children.');
-          isValid = false;
-        }
-        break;
-      }
-      case 1: {
-        const comm = step.querySelector('input[name="comm-describe"]:checked');
-        const barriers = step.querySelector('#comm-barriers');
-        if (!comm) {
-          showError(step.querySelector('#comm-label')?.nextElementSibling || step, 'Please describe communication.');
-          isValid = false;
-        }
-        if (barriers && !barriers.value.trim()) {
-          barriers.style.borderColor = 'var(--teal-waters)';
-          showError(barriers, 'Please share what makes conversation difficult.');
-          isValid = false;
-        }
-        break;
-      }
-      case 2: {
-        const childOpening = step.querySelector('input[name="child-opening-up"]:checked');
-        const experience = step.querySelector('#experience-story');
-        if (!childOpening) {
-          showError(step.querySelector('#opening-label')?.nextElementSibling || step, 'Please indicate if this has happened.');
-          isValid = false;
-        }
-        if (experience && !experience.value.trim()) {
-          experience.style.borderColor = 'var(--teal-waters)';
-          showError(experience, 'Please share your experience.');
-          isValid = false;
-        }
-        break;
-      }
-      case 3: {
-        ['what-helped', 'desired-support', 'advice'].forEach((id) => {
-          const field = document.getElementById(id);
-          if (field && !field.value.trim()) {
-            field.style.borderColor = 'var(--teal-waters)';
-            showError(field, 'Please share your response before continuing.');
-            isValid = false;
-          }
-        });
-        break;
-      }
-      case 4: {
-        if (!consentInput.checked) {
-          showError(document.getElementById('consent-group'), 'Please confirm you understand before submitting.');
-          isValid = false;
-        }
-        break;
-      }
+      });
+    } catch (e) {
+      /* storage unavailable */
     }
-
-    if (!isValid) {
-      step.querySelector('.form-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    return isValid;
   }
 
   function collectData() {
@@ -210,47 +284,165 @@
     surveyData.whatHelped = document.getElementById('what-helped')?.value.trim() || '';
     surveyData.desiredSupport = document.getElementById('desired-support')?.value.trim() || '';
     surveyData.adviceToOtherParents = document.getElementById('advice')?.value.trim() || '';
-    surveyData.anonymous = anonymousInput?.checked ?? true;
-    surveyData.participantName = anonymousInput?.checked ? null : document.getElementById('participant-name')?.value.trim() || null;
-    surveyData.participantEmail = anonymousInput?.checked ? null : document.getElementById('participant-email')?.value.trim() || null;
+    surveyData.anonymous = anonymousInput.checked;
+    surveyData.participantName = anonymousInput.checked
+      ? null
+      : document.getElementById('participant-name')?.value.trim() || null;
+    surveyData.participantEmail = anonymousInput.checked
+      ? null
+      : document.getElementById('participant-email')?.value.trim() || null;
     surveyData.submittedAt = new Date().toISOString();
     return surveyData;
   }
 
   async function submitSurvey() {
-    const data = collectData();
+    if (submitting) return;
 
-    if (!data.role || !data.childrenCount || !data.communication) {
-      showStep(0);
-      validateStep(0);
-      return;
+    const seq = getSequence();
+    for (const el of seq) {
+      const err = checkQuestion(el);
+      if (err) {
+        goTo(el.dataset.qid, {
+          push: false,
+          onShown: () => reportError(err)
+        });
+        return;
+      }
     }
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
+    const data = collectData();
+    submitting = true;
+    btnNext.disabled = true;
+    btnBack.disabled = true;
+    btnNext.textContent = 'Submitting…';
 
     try {
       await submitToFirestore(data);
+      try {
+        sessionStorage.removeItem(DRAFT_KEY);
+      } catch (e) {
+        /* storage unavailable */
+      }
       window.location.href = 'thank-you.html';
     } catch (err) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit response →';
-      const hint = document.createElement('p');
-      hint.className = 'form-hint form-error';
-      hint.textContent = 'Something went wrong submitting your response. Please try again.';
-      submitBtn.closest('.step-actions')?.appendChild(hint);
+      submitting = false;
+      btnNext.disabled = false;
+      btnBack.disabled = false;
+      updateChrome(currentElement());
+      clearError();
+      navError.textContent = 'Something went wrong submitting your response. Please try again.';
+      navError.hidden = false;
     }
   }
 
   // Submit to Firestore — replace with the Firebase SDK call (see firebase/config.js)
   async function submitToFirestore(data) {
-    // Simulated network request
     await new Promise((resolve) => setTimeout(resolve, 900));
     // Example real integration:
     //   const { addDoc, collection } = await import('https://www.gstatic.com/firebasejs/10.x/firebase-firestore.js');
     //   await addDoc(collection(db, 'parentSurveyResponses'), data);
     console.log('Parent Voice Study response submitted:', data);
     return true;
+  }
+
+  function setupEvents() {
+    btnNext.addEventListener('click', goNext);
+    btnBack.addEventListener('click', goBack);
+
+    flow.addEventListener('input', (e) => {
+      if (e.target.getAttribute('aria-invalid') === 'true') {
+        e.target.removeAttribute('aria-invalid');
+        clearError();
+      }
+      saveDraft();
+    });
+
+    flow.addEventListener('change', (e) => {
+      if (e.target === anonymousInput) {
+        syncAnonymous();
+        const el = currentElement();
+        if (el) updateChrome(el);
+      }
+      clearError();
+      saveDraft();
+    });
+
+    flow.addEventListener('keydown', (e) => {
+      if (
+        e.key === 'Enter' &&
+        e.target.matches('input[type="text"], input[type="email"]')
+      ) {
+        e.preventDefault();
+        goNext();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goBack();
+      }
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goNext();
+      }
+    });
+
+    window.addEventListener('popstate', (e) => {
+      const qid =
+        (e.state && e.state.qid) ||
+        new URLSearchParams(location.search).get('q');
+      if (qid && qid !== currentQid) {
+        const moved = goTo(qid, { push: false });
+        if (!moved) {
+          try {
+            window.history.replaceState(
+              { qid: currentQid },
+              '',
+              `${location.pathname}?q=${currentQid}`
+            );
+          } catch (err) {
+            /* file:// or restricted context */
+          }
+        }
+      }
+    });
+  }
+
+  function resolveStartQid(requested, seq) {
+    if (requested && indexOfQid(seq, requested) !== -1) return requested;
+    if (requested) {
+      const reqPos = items.findIndex((el) => el.dataset.qid === requested);
+      for (let i = reqPos - 1; i >= 0; i--) {
+        if (seq.includes(items[i])) return items[i].dataset.qid;
+      }
+    }
+    return seq[0].dataset.qid;
+  }
+
+  function init() {
+    restoreDraft();
+    syncAnonymous();
+
+    const params = new URLSearchParams(location.search);
+    const seq = getSequence();
+    const startQid = resolveStartQid(params.get('q'), seq);
+    const startEl = seq[indexOfQid(seq, startQid)];
+
+    items.forEach((el) => el.classList.remove('is-active'));
+    startEl.classList.add('is-active');
+    currentQid = startQid;
+    updateChrome(startEl);
+
+    try {
+      window.history.replaceState({ qid: startQid }, '', `${location.pathname}?q=${startQid}`);
+    } catch (e) {
+      /* file:// or restricted context */
+    }
+
+    setupEvents();
   }
 
   document.addEventListener('DOMContentLoaded', init);
