@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parent Voice Study — Survey | Soter AI</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header" aria-label="Site header">
+    <div class="header-container">
+      <a href="index.html" class="logo" aria-label="Soter AI home">
+        <img src="assets/icon.png" alt="" width="34" height="34">
+        <span>Soter AI</span>
+      </a>
+      <div class="header-right">
+        <span class="header-title">Parent Voice Study</span>
+        <span class="header-confidential">Confidential</span>
+      </div>
+    </div>
+  </header>
+
+  <a class="skip-link" href="#survey-main">Skip to survey</a>
+
+  <main class="survey-main" id="survey-main" aria-roledescription="survey" aria-label="Parent Voice Survey">
+
+    <div class="survey-intro">
+      <p class="overline">Parent Voice Study</p>
+      <p class="survey-note">Your response is voluntary and confidential. You can answer anonymously — you'll move through five short sections, and you can go back at any time.</p>
+    </div>
+
+    <!-- Step 01: About You -->
+    <section class="step step-01" id="step-01" aria-label="Step 1: About You" hidden>
+      <div class="step-progress">01</div>
+      <div class="step-inner">
+        <h2 class="step-heading">ABOUT YOU</h2>
+        <p class="step-intro">Help us understand your role as a parent or caregiver.</p>
+
+        <div class="form-group">
+          <span class="form-label" id="role-label">How would you describe your role?</span>
+          <div class="form-radio-group" role="radiogroup" aria-labelledby="role-label" aria-describedby="role-hint">
+            <label class="form-radio">
+              <input type="radio" name="role" value="Parent">
+              <span>Parent</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="role" value="Guardian">
+              <span>Guardian</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="role" value="Caregiver">
+              <span>Caregiver</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="role" value="Another caring role">
+              <span>Another caring role</span>
+            </label>
+          </div>
+          <p class="form-hint" id="role-hint">Select the option that best describes your role.</p>
+        </div>
+
+        <div class="form-group">
+          <span class="form-label" id="children-label">How many children are you currently raising or caring for?</span>
+          <div class="form-radio-group" role="radiogroup" aria-labelledby="children-label">
+            <label class="form-radio">
+              <input type="radio" name="children" value="1">
+              <span>1</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="children" value="2">
+              <span>2</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="children" value="3">
+              <span>3</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="children" value="4">
+              <span>4</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="children" value="5OrMore">
+              <span>5 or more</span>
+            </label>
+          </div>
+          <p class="form-hint">Select the number of children you are currently raising or caring for.</p>
+        </div>
+
+        <div class="step-actions">
+          <a href="index.html" class="btn btn-secondary btn-home">← Home</a>
+          <button type="button" class="btn btn-primary btn-next">Continue →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 02: Communication -->
+    <section class="step step-02" id="step-02" aria-label="Step 2: Communication" hidden>
+      <div class="step-progress">02</div>
+      <div class="step-inner">
+        <h2 class="step-heading">COMMUNICATION</h2>
+        <p class="step-intro">Tell us about your experience communicating with your child or children.</p>
+
+        <div class="form-group">
+          <span class="form-label" id="comm-label">How would you describe communication between you and your child or children?</span>
+          <div class="form-radio-group" role="radiogroup" aria-labelledby="comm-label">
+            <label class="form-radio">
+              <input type="radio" name="comm-describe" value="Very open">
+              <span>Very open</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="comm-describe" value="Generally open">
+              <span>Generally open</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="comm-describe" value="Sometimes difficult">
+              <span>Sometimes difficult</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="comm-describe" value="Often difficult">
+              <span>Often difficult</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="comm-describe" value="Rarely discuss">
+              <span>We rarely discuss personal matters</span>
+            </label>
+          </div>
+          <p class="form-hint">Select the option that best describes your situation.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="comm-barriers">What can make open conversation difficult?</label>
+          <textarea class="form-textarea" id="comm-barriers" rows="3" placeholder="Your experiences..." aria-label="What can make open conversation difficult?"></textarea>
+          <p class="form-hint">Examples may include fear of judgement, busy schedules, past disagreements, cultural expectations, or simply not knowing how to begin. Your answer is voluntary.</p>
+        </div>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-secondary btn-back">← Back</button>
+          <button type="button" class="btn btn-primary btn-next">Continue →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 03: Experience -->
+    <section class="step step-03" id="step-03" aria-label="Step 3: Experience" hidden>
+      <div class="step-progress">03</div>
+      <div class="step-inner">
+        <h2 class="step-heading">EXPERIENCE</h2>
+        <p class="step-intro">Share a story about a time your child found it difficult to open up.</p>
+
+        <div class="form-group">
+          <span class="form-label" id="opening-label">Have you experienced a situation where your child found it difficult to open up to you?</span>
+          <div class="form-radio-group" role="radiogroup" aria-labelledby="opening-label">
+            <label class="form-radio">
+              <input type="radio" name="child-opening-up" value="Yes">
+              <span>Yes</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="child-opening-up" value="No">
+              <span>No</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="child-opening-up" value="Not sure">
+              <span>Not sure</span>
+            </label>
+            <label class="form-radio">
+              <input type="radio" name="child-opening-up" value="Rather not say">
+              <span>I would rather not say</span>
+            </label>
+          </div>
+          <p class="form-hint">Select the option that best applies to your experience.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="experience-story">If you are comfortable, describe an experience that changed how you think about communicating with your child.</label>
+          <textarea class="form-textarea" id="experience-story" rows="4" placeholder="Share a story..." aria-label="Describe an experience that changed how you think about communicating with your child"></textarea>
+          <p class="form-hint">Your answer is voluntary. Take the time you need.</p>
+        </div>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-secondary btn-back">← Back</button>
+          <button type="button" class="btn btn-primary btn-next">Continue →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 04: What Helps -->
+    <section class="step step-04" id="step-04" aria-label="Step 4: What Helps" hidden>
+      <div class="step-progress">04</div>
+      <div class="step-inner">
+        <h2 class="step-heading">WHAT HELPS</h2>
+        <p class="step-intro">Tell us about the strategies and support that have made a difference.</p>
+
+        <div class="form-group">
+          <label class="form-label" for="what-helped">What has helped you communicate better with your child?</label>
+          <textarea class="form-textarea" id="what-helped" rows="3" placeholder="Your story..." aria-label="What has helped you communicate better with your child"></textarea>
+          <p class="form-hint">Your answer is voluntary.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="desired-support">What kind of support do you think parents and children need?</label>
+          <textarea class="form-textarea" id="desired-support" rows="3" placeholder="Your thoughts..." aria-label="What kind of support do you think parents and children need"></textarea>
+          <p class="form-hint">Your answer is voluntary.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="advice">What would you tell another parent who is struggling to connect with their child?</label>
+          <textarea class="form-textarea" id="advice" rows="3" placeholder="Your advice..." aria-label="What would you tell another parent who is struggling to connect with their child"></textarea>
+          <p class="form-hint">Your answer is voluntary.</p>
+        </div>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-secondary btn-back">← Back</button>
+          <button type="button" class="btn btn-primary btn-next">Continue →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 05: Privacy -->
+    <section class="step step-05" id="step-05" aria-label="Step 5: Privacy" hidden>
+      <div class="step-progress">05</div>
+      <div class="step-inner">
+        <h2 class="step-heading">PRIVACY</h2>
+        <p class="step-intro">A few final details before you send your response.</p>
+
+        <div class="privacy-notice">
+          <p>Your response is voluntary. Please do not include your child's full name, address, phone number, passwords, or other information that could directly identify you or your child.</p>
+        </div>
+
+        <div class="form-group">
+          <span class="form-label" id="anonymous-label">Submit anonymously</span>
+          <div class="toggle-row">
+            <label class="toggle-switch" aria-labelledby="anonymous-label">
+              <input type="checkbox" id="anonymous" checked>
+              <span class="slider"></span>
+            </label>
+            <p class="toggle-caption" id="toggle-caption">Submit anonymously</p>
+          </div>
+        </div>
+
+        <div id="name-email-fields" class="form-group" hidden>
+          <div class="form-row">
+            <div class="form-group half">
+              <label class="form-label" for="participant-name">Name (optional)</label>
+              <input type="text" id="participant-name" class="form-input" placeholder="Your name" autocomplete="name">
+            </div>
+            <div class="form-group half">
+              <label class="form-label" for="participant-email">Email (optional)</label>
+              <input type="email" id="participant-email" class="form-input" placeholder="your@email.example.com" autocomplete="email">
+            </div>
+          </div>
+          <p class="form-hint">Only provide contact information if you are comfortable being contacted about the study.</p>
+        </div>
+
+        <div class="form-group" id="consent-group">
+          <label class="form-checkbox" for="consent">
+            <input type="checkbox" id="consent">
+            <span>I understand that my response is voluntary and may be used to inform Soter AI research and development.</span>
+          </label>
+          <p class="form-hint">Required to submit.</p>
+        </div>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-secondary btn-back">← Back</button>
+          <button type="submit" class="btn btn-primary" id="submit-btn">Submit response →</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <strong>Soter AI — Parent Voice Study</strong>
+      <span>Confidential research · Your response is voluntary</span>
+    </div>
+  </footer>
+
+  <script src="survey.js"></script>
+</body>
+</html>
