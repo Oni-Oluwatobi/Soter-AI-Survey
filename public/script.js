@@ -7,8 +7,6 @@
   // DOM Elements
   const steps = document.querySelectorAll('.step');
   const progressSteps = document.querySelectorAll('.step-progress');
-  const btnBack = document.querySelectorAll('.btn-secondary');
-  const btnNextOrSubmit = document.getElementById('submit-btn');
   const submitBtn = document.getElementById('submit-btn');
   const anonymousInput = document.getElementById('anonymous');
   const nameEmailFields = document.getElementById('name-email-fields');
@@ -100,25 +98,36 @@
 
   // Setup event listeners
   function setupEventListeners() {
-    // Navigation buttons
-    btnBack.forEach((btn, index) => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (currentStep > 0) {
-          currentStep--;
-          showStep(currentStep);
-        }
+    // Begin Survey button
+    const beginBtn = document.getElementById('begin-survey');
+    if (beginBtn) {
+      beginBtn.addEventListener('click', () => {
+        currentStep = 0;
+        showStep(0);
+        document.getElementById('step-01').scrollIntoView({ behavior: 'smooth' });
       });
-    });
+    }
 
-    // Next step buttons (inside steps 01-04)
-    const nextButtons = document.querySelectorAll('.step-actions .btn-primary');
-    nextButtons.forEach((btn, index) => {
+    // Next step buttons
+    document.querySelectorAll('.btn-next').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         if (validateStep(currentStep)) {
           currentStep++;
           showStep(currentStep);
+          document.querySelector('.step.active')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Back buttons
+    document.querySelectorAll('.btn-back').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentStep > 0) {
+          currentStep--;
+          showStep(currentStep);
+          document.querySelector('.step.active')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       });
     });
