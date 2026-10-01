@@ -216,6 +216,25 @@ a {
   font-size: 14px; line-height: 1.6; color: var(--text-secondary); margin: 0;
 }
 
+/* What to expect — standalone page */
+body.page-white .expect {
+  min-height: calc(100vh - 56px);
+  border-top: 0;
+  padding-top: calc(var(--header-h) + env(safe-area-inset-top, 0px) + clamp(28px, 6vh, 64px));
+  padding-bottom: clamp(40px, 8vh, 80px);
+  display: grid;
+  align-content: center;
+}
+
+.expect-actions {
+  margin-top: clamp(28px, 6vh, 44px);
+  display: flex;
+}
+
+.expect-actions .btn {
+  width: 100%; max-width: 360px; justify-content: center;
+}
+
 /* Footer */
 .site-footer {
   background: var(--morning-mist);
@@ -234,6 +253,17 @@ a {
 .site-footer strong {
   font-family: 'Cormorant Garamond', serif;
   font-size: 15px; font-weight: 600; color: var(--teal-waters);
+}
+
+/* White canvas pages (survey + what-to-expect) */
+body.page-white {
+  background: var(--white);
+}
+
+.page-white .header,
+.page-white .site-footer,
+.page-white .survey-nav {
+  background: var(--white);
 }
 
 /* Survey — shell */
@@ -313,6 +343,14 @@ a {
 /* Section card */
 .section-card {
   padding-block: clamp(8px, 3vh, 32px) clamp(4px, 2vh, 16px);
+}
+
+/* Welcome screen — only cream panel on the white survey */
+.welcome-card {
+  background: var(--morning-mist);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: clamp(24px, 6vw, 40px);
 }
 
 .section-accent {
