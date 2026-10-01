@@ -243,6 +243,8 @@ input:checked + .slider::before { transform: translateX(20px); }
 .form-group.half { flex: 1; min-width: 200px; }
 
 /* Step Actions */
+.step-01 .btn-back { display: none; }
+
 .step-actions {
   display: flex; justify-content: flex-end; align-items: center; gap: 16px;
   margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border-light);
