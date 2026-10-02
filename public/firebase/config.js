@@ -24,4 +24,6 @@
 //   { provider: new ReCaptchaV3Provider("your-site-key") }
 // );
 
-export { surveyData, submitToFirestore };
+// Survey submission entry point: survey.js → submitToFirestore(payload).
+// When credentials are available, replace that function body with the
+// Firebase SDK call (see the example comment inside survey.js).

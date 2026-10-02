@@ -1,46 +1,57 @@
 /*
   Soter AI Parent Voice Study — Firestore Security Rules
   Collection: parentSurveyResponses
-  
+  Payload (surveyVersion 2.0):
+    {
+      role: 'parent' | 'guardian' | 'child',
+      ageGroup: '8-10' | '11-13' | '14-16' | '17-18' | null,
+      answers: { [qid]: value },
+      anonymous: bool,
+      participantName: string | null,
+      participantEmail: string | null,
+      submittedAt: ISO string,
+      surveyVersion: '2.0'
+    }
+
   Public participants may:
     - CREATE a survey response
-  
+
   Public participants must NOT:
     - READ responses
     - UPDATE responses
     - DELETE responses
-  
+
   Administrative research access must remain restricted.
 */
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+
     // Survey responses collection — public can only create
     match /parentSurveyResponses/{responseId} {
-      
+
       // Allow public to create new survey responses
-      // Validation ensures required fields are present
-      allow create: if request.auth == null 
-                    && request.resource.data.role is not null
-                    && request.resource.data.childrenCount is not null
-                    && request.resource.data.communication is not null
-                    && request.resource.data.childOpeningUpExperience is not null
-                    && request.resource.data.experienceStory is not null
-                    && request.resource.data.whatHelped is not null
-                    && request.resource.data.desiredSupport is not null
-                    && request.resource.data.adviceToOtherParents is not null
-                    && (request.resource.data.anonymous == true 
-                        || (request.resource.data.participantName is not null 
-                            && request.resource.data.participantEmail is not null));
-      
+      // Validation ensures the structured payload is present
+      allow create: if request.auth == null
+                    && request.resource.data.role is string
+                    && request.resource.data.role in ['parent', 'guardian', 'child']
+                    && (request.resource.data.ageGroup == null
+                        || request.resource.data.ageGroup in ['8-10', '11-13', '14-16', '17-18'])
+                    && request.resource.data.answers is map
+                    && request.resource.data.anonymous is bool
+                    && request.resource.data.submittedAt is string
+                    && request.resource.data.surveyVersion is string
+                    && (request.resource.data.anonymous == true
+                        || (request.resource.data.participantName != null
+                            && request.resource.data.participantEmail != null));
+
       // Public must not read, update, or delete
       // Administrative access only via explicit authentication
       allow read: if false;
       allow update: if false;
       allow delete: if false;
     }
-    
+
     // Administrative research data — restricted
     // This would require Firebase App Check or custom claims
     match /researchData/{document} {
