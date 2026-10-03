@@ -638,14 +638,14 @@ window.SURVEY_MODEL.child_8_10 = [
     qid: 's-home',
     section: 'Talking at home',
     title: 'Talking at home',
-    intro: 'These questions are about talking with the grown-ups at home.',
+    intro: 'These questions are about talking with the grown ups at home.',
     notice: 'There are no right or wrong answers. Your answers are private.'
   },
   {
     type: 'radio',
     qid: 'c8-frequency',
     section: 'Talking at home',
-    label: 'How often do you talk with a grown-up at home about your day?',
+    label: 'How often do you talk with a grown up at home about your day?',
     options: [
       { value: 'daily', label: 'Every day' },
       { value: 'few-week', label: 'A few times a week' },
@@ -660,7 +660,7 @@ window.SURVEY_MODEL.child_8_10 = [
     type: 'radio',
     qid: 'c8-listen',
     section: 'Talking at home',
-    label: 'When you tell a grown-up how you feel, how well do you think they listen?',
+    label: 'When you tell a grown up how you feel, how well do you think they listen?',
     options: [
       { value: 'very', label: 'They listen really well' },
       { value: 'okay', label: 'They listen okay' },
@@ -674,7 +674,7 @@ window.SURVEY_MODEL.child_8_10 = [
     type: 'radio',
     qid: 'c8-hardtopic',
     section: 'Talking at home',
-    label: 'Is there something you find hard to talk about with a grown-up at home?',
+    label: 'Is there something you find hard to talk about with a grown up at home?',
     options: [
       { value: 'yes', label: 'Yes' },
       { value: 'sometimes', label: 'Sometimes' },
@@ -687,7 +687,7 @@ window.SURVEY_MODEL.child_8_10 = [
     type: 'textarea',
     qid: 'c8-hint',
     section: 'Talking at home',
-    label: 'What would make talking with grown-ups at home easier for you?',
+    label: 'What would make talking with grown ups at home easier for you?',
     hint: 'Optional — you can write as much or as little as you like.',
     placeholder: 'For example: More time before bed…',
     required: false
@@ -748,14 +748,14 @@ window.SURVEY_MODEL.child_8_10 = [
     qid: 's-generation',
     section: 'Then and now',
     title: 'Then and now',
-    intro: 'A few questions about being a kid today versus when your grown-ups were young.',
+    intro: 'A few questions about being a kid today versus when your grown ups were young.',
     notice: 'There are no right or wrong answers. Your answers are private.'
   },
   {
     type: 'radio',
     qid: 'c8-gap',
     section: 'Then and now',
-    label: 'Do you think being a kid today is very different from when your grown-ups were kids?',
+    label: 'Do you think being a kid today is very different from when your grown ups were kids?',
     options: [
       { value: 'very', label: 'Very different' },
       { value: 'some', label: 'A bit different' },
@@ -769,7 +769,7 @@ window.SURVEY_MODEL.child_8_10 = [
     type: 'radio',
     qid: 'c8-understand',
     section: 'Then and now',
-    label: 'How well do your grown-ups understand the things you care about?',
+    label: 'How well do your grown ups understand the things you care about?',
     options: [
       { value: 'very', label: 'Really well' },
       { value: 'mostly', label: 'Pretty well' },
@@ -783,7 +783,7 @@ window.SURVEY_MODEL.child_8_10 = [
     type: 'textarea',
     qid: 'c8-wish',
     section: 'Then and now',
-    label: 'Is there something you wish your grown-ups understood about being your age?',
+    label: 'Is there something you wish your grown ups understood about being your age?',
     hint: 'Optional — you can write as much or as little as you like.',
     placeholder: 'For example: Everyone in my class…',
     required: false
@@ -806,7 +806,7 @@ window.SURVEY_MODEL.child_8_10 = [
       { value: 'fun', label: 'Having fun with friends and family' },
       { value: 'happy', label: 'Feeling happy' },
       { value: 'school', label: 'Doing well at school' },
-      { value: 'time', label: 'More time with my grown-ups' },
+      { value: 'time', label: 'More time with my grown ups' },
       { value: 'brave', label: 'Being brave when things are hard' }
     ],
     required: true,
@@ -1003,7 +1003,7 @@ window.SURVEY_MODEL.child_11_13 = [
       { value: 'friends', label: 'Good friends' },
       { value: 'success', label: 'Doing well at school' },
       { value: 'balance', label: 'A healthy balance with technology' },
-      { value: 'understood', label: 'Feeling understood by grown-ups' }
+      { value: 'understood', label: 'Feeling understood by grown ups' }
     ],
     required: true,
     error: 'Please select at least one option.'
@@ -1236,7 +1236,7 @@ window.SURVEY_MODEL.child_14_16 = [
       { value: 'friends', label: 'Good friends and relationships' },
       { value: 'success', label: 'School or career success' },
       { value: 'balance', label: 'A healthy balance with technology' },
-      { value: 'understood', label: 'Feeling understood by grown-ups' }
+      { value: 'understood', label: 'Feeling understood by grown ups' }
     ],
     required: true,
     error: 'Please select at least one option.'
