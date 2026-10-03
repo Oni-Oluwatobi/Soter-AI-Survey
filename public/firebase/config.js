@@ -1,4 +1,4 @@
-// Firebase Configuration for Soter AI Parent Voice Study
+// Firebase Configuration for Soter AI Family Voices Study
 // NOTE: In production, use environment variables for Firebase credentials
 // Never hardcode private credentials in client-side code
 

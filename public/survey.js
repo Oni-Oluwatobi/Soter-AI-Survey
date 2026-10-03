@@ -1,4 +1,4 @@
-// Soter AI Parent Voice Study — role-based, age-aware one-question-at-a-time survey engine
+// Soter AI Family Voices Study — role-based, age-aware one-question-at-a-time survey engine
 // Structured model (questions.js) → sequence builder → renderer → validation, transitions,
 // history, draft persistence, submission
 
@@ -808,7 +808,7 @@
     // Example real integration:
     //   const { addDoc, collection } = await import('https://www.gstatic.com/firebasejs/10.x/firebase-firestore.js');
     //   await addDoc(collection(db, 'parentSurveyResponses'), data);
-    console.log('Parent Voice Study response submitted: ' + JSON.stringify(data));
+    console.log('Family Voices Study response submitted: ' + JSON.stringify(data));
     return true;
   }
 
