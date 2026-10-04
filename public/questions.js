@@ -60,15 +60,17 @@ window.SURVEY_MODEL.privacyAdult = [
     type: 'toggle',
     qid: 'q-anonymous',
     section: 'Privacy',
-    label: 'Submit anonymously'
+    label: 'Would you like us to associate your responses with you?'
   },
   {
     type: 'contact',
     qid: 'q-contact',
     section: 'Privacy',
     when: 'not-anonymous',
-    label: 'Your contact details (optional)',
-    hint: 'Only provide contact information if you are comfortable being contacted about the study.'
+    label: 'Your details',
+    hint: 'Required — or turn on Respond anonymously above to skip these fields.',
+    required: true,
+    error: 'Please add your full name and email address, or turn on Respond anonymously.'
   },
   {
     type: 'consent',

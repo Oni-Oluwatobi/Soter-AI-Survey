@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Admin Access — Family Voices Study | Soter AI</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="/assets/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+  <noscript>
+    <div class="admin-noscript">JavaScript is required for the admin dashboard.</div>
+  </noscript>
+
+  <!-- Login -->
+  <main class="login-screen" id="login-view">
+    <section class="login-card" aria-labelledby="login-heading">
+      <img src="/assets/icon.png" alt="" width="44" height="44" class="login-mark">
+      <p class="login-brand">Soter AI</p>
+      <p class="login-study">Family Voices Study</p>
+      <p class="login-overline">Admin Access</p>
+      <h1 id="login-heading" class="visually-hidden">Administrator sign in</h1>
+
+      <form id="login-form" novalidate>
+        <label class="field-label" for="admin-password">Password</label>
+        <input
+          type="password"
+          id="admin-password"
+          name="password"
+          class="field-input"
+          autocomplete="current-password"
+          maxlength="512"
+          required
+        >
+        <p class="form-error" id="login-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary" id="login-btn">Sign in</button>
+      </form>
+
+      <p class="login-note">Confidential research · Authorised reviewers only</p>
+    </section>
+  </main>
+
+  <!-- Dashboard -->
+  <div class="dashboard" id="dashboard-view" hidden>
+    <header class="admin-header">
+      <div class="admin-header-inner">
+        <a href="/" class="admin-logo" aria-label="Soter AI home">
+          <img src="/assets/icon.png" alt="" width="32" height="32">
+          <span class="admin-logo-text">Soter AI</span>
+          <span class="admin-header-study">Family Voices Study</span>
+        </a>
+        <div class="admin-header-right">
+          <span class="admin-header-label">Admin</span>
+          <button type="button" class="btn btn-ghost" id="logout-btn">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <div class="admin-title-row">
+        <div>
+          <p class="overline">Responses</p>
+          <h1 class="admin-title">Survey dashboard</h1>
+        </div>
+        <button type="button" class="btn btn-secondary" id="refresh-btn">Refresh</button>
+      </div>
+
+      <p class="load-error" id="load-error" role="alert" hidden></p>
+
+      <section class="stats-strip" aria-label="Summary statistics">
+        <div class="stat"><span class="stat-value" id="stat-total">0</span><span class="stat-label">Total responses</span></div>
+        <div class="stat"><span class="stat-value" id="stat-identified">0</span><span class="stat-label">Identified</span></div>
+        <div class="stat"><span class="stat-value" id="stat-anon">0</span><span class="stat-label">Anonymous</span></div>
+        <div class="stat"><span class="stat-value" id="stat-parent">0</span><span class="stat-label">Parents</span></div>
+        <div class="stat"><span class="stat-value" id="stat-guardian">0</span><span class="stat-label">Guardians</span></div>
+        <div class="stat"><span class="stat-value" id="stat-child">0</span><span class="stat-label">Children</span></div>
+      </section>
+
+      <section class="controls" aria-label="Search and filter">
+        <input type="search" id="search-input" class="field-input control-search" placeholder="Search responses…" aria-label="Search responses">
+        <select id="filter-role" class="field-input control-select" aria-label="Filter by respondent type">
+          <option value="">All types</option>
+          <option value="parent">Parent</option>
+          <option value="guardian">Guardian</option>
+          <option value="child">Child</option>
+        </select>
+        <select id="filter-anon" class="field-input control-select" aria-label="Filter by anonymous status">
+          <option value="">Any privacy</option>
+          <option value="anon">Anonymous</option>
+          <option value="named">Identified</option>
+        </select>
+        <select id="sort-order" class="field-input control-select" aria-label="Sort by submission date">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+        </select>
+      </section>
+
+      <p class="result-count" id="result-count"></p>
+
+      <div class="table-wrap">
+        <table class="responses-table" aria-label="Survey responses">
+          <thead>
+            <tr>
+              <th scope="col">Submitted</th>
+              <th scope="col">Type</th>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Status</th>
+              <th scope="col"><span class="visually-hidden">Open</span></th>
+            </tr>
+          </thead>
+          <tbody id="responses-body">
+            <tr><td colspan="6" class="table-empty">Loading responses…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <!-- Detail panel -->
+    <div class="detail-overlay" id="detail-overlay" hidden>
+      <div class="detail-panel" role="dialog" aria-modal="true" aria-labelledby="detail-heading">
+        <div class="detail-head">
+          <div>
+            <p class="overline">Response</p>
+            <h2 id="detail-heading">Response details</h2>
+          </div>
+          <button type="button" class="btn btn-secondary" id="detail-close">Back to responses</button>
+        </div>
+        <dl class="detail-meta" id="detail-meta"></dl>
+        <div class="detail-answers" id="detail-answers"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/questions.js"></script>
+  <script src="/admin.js" defer></script>
+</body>
+</html>

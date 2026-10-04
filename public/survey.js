@@ -28,7 +28,7 @@
     role: '',
     ageGroup: null,
     answers: {},
-    anonymous: true,
+    anonymous: false,
     participantName: '',
     participantEmail: ''
   };
@@ -177,7 +177,7 @@
 
   function renderToggle(item) {
     const node = makeItemEl(item);
-    node.appendChild(makeHeading(item.label || 'Submit anonymously', 'question-text', item.qid));
+    node.appendChild(makeHeading(item.label || 'Respond anonymously', 'question-text', item.qid));
 
     const controls = h('div', 'q-controls');
     const row = h('div', 'toggle-row');
@@ -189,7 +189,7 @@
     switchLabel.appendChild(input);
     switchLabel.appendChild(h('span', 'slider'));
     row.appendChild(switchLabel);
-    row.appendChild(h('p', 'toggle-caption', 'Submit anonymously'));
+    row.appendChild(h('p', 'toggle-caption', 'Respond anonymously'));
     row.querySelector('.toggle-caption').id = 'toggle-caption';
     controls.appendChild(row);
     node.appendChild(controls);
@@ -205,26 +205,26 @@
     const controls = h('div', 'q-controls contact-fields');
 
     const nameField = h('div', 'contact-field');
-    const nameLabel = h('label', 'field-label', 'Name (optional)');
+    const nameLabel = h('label', 'field-label', 'Full Name');
     nameLabel.htmlFor = 'participant-name';
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.id = 'participant-name';
     nameInput.className = 'form-input';
-    nameInput.placeholder = 'Your name';
+    nameInput.placeholder = 'Your full name';
     nameInput.autocomplete = 'name';
     if (hint) nameInput.setAttribute('aria-describedby', hint.id);
     nameField.appendChild(nameLabel);
     nameField.appendChild(nameInput);
 
     const emailField = h('div', 'contact-field');
-    const emailLabel = h('label', 'field-label', 'Email (optional)');
+    const emailLabel = h('label', 'field-label', 'Email Address');
     emailLabel.htmlFor = 'participant-email';
     const emailInput = document.createElement('input');
     emailInput.type = 'email';
     emailInput.id = 'participant-email';
     emailInput.className = 'form-input';
-    emailInput.placeholder = 'your@email.example.com';
+    emailInput.placeholder = 'you@example.com';
     emailInput.autocomplete = 'email';
     if (hint) emailInput.setAttribute('aria-describedby', hint.id);
     emailField.appendChild(emailLabel);
@@ -425,6 +425,13 @@
 
       const textarea = node.querySelector('textarea');
       if (textarea) textarea.value = typeof answer === 'string' ? answer : '';
+
+      if (qid === 'q-contact') {
+        const nameInput = node.querySelector('#participant-name');
+        const emailInput = node.querySelector('#participant-email');
+        if (nameInput) nameInput.value = state.participantName || '';
+        if (emailInput) emailInput.value = state.participantEmail || '';
+      }
     });
 
     syncAnonymous();
@@ -440,6 +447,25 @@
 
   function checkQuestion(node) {
     if (node.dataset.flow !== 'question' || node.dataset.required !== 'true') {
+      return null;
+    }
+
+    if (node.dataset.qid === 'q-contact') {
+      const nameEl = node.querySelector('#participant-name');
+      const emailEl = node.querySelector('#participant-email');
+      const name = nameEl ? nameEl.value.trim() : '';
+      const email = emailEl ? emailEl.value.trim() : '';
+      if (!name) {
+        return { message: 'Please enter your full name.', control: nameEl };
+      }
+      if (!email) {
+        return { message: 'Please enter your email address.', control: emailEl };
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return { message: 'Please enter a valid email address.', control: emailEl };
+      }
+      state.participantName = name;
+      state.participantEmail = email;
       return null;
     }
 
@@ -473,8 +499,10 @@
     clearError();
     navError.textContent = err.message;
     navError.hidden = false;
-    err.control.setAttribute('aria-invalid', 'true');
-    err.control.focus({ preventScroll: false });
+    if (err.control) {
+      err.control.setAttribute('aria-invalid', 'true');
+      err.control.focus({ preventScroll: false });
+    }
   }
 
   function updateChrome(el) {
@@ -638,8 +666,8 @@
     const caption = flow.querySelector('.toggle-caption');
     if (caption) {
       caption.textContent = state.anonymous
-        ? 'Submit anonymously'
-        : 'Submit with my name and email';
+        ? 'Respond anonymously'
+        : 'Add my name and email';
     }
     if (state.anonymous) {
       state.participantName = '';
@@ -749,17 +777,20 @@
       }
     });
     const isChild = state.role === 'child';
-    const anonymous = isChild ? true : state.anonymous;
-    return {
-      role: state.role,
+    const isAnonymous = isChild ? true : state.anonymous;
+    const payload = {
+      respondentType: state.role,
       ageGroup: isChild ? state.ageGroup : null,
       answers,
-      anonymous,
-      participantName: anonymous ? null : state.participantName || null,
-      participantEmail: anonymous ? null : state.participantEmail || null,
+      isAnonymous,
       submittedAt: new Date().toISOString(),
       surveyVersion: '2.0'
     };
+    if (!isAnonymous) {
+      payload.name = (state.participantName || '').trim();
+      payload.email = (state.participantEmail || '').trim();
+    }
+    return payload;
   }
 
   async function submitSurvey() {
@@ -778,13 +809,28 @@
     }
 
     const data = collectPayload();
+    const audit = auditPayload(data);
+    if (audit.issues.length) {
+      reportError({
+        message:
+          'Some answers could not be verified, so nothing was submitted. Please review your responses and try again.',
+        control: null
+      });
+      return;
+    }
+    if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+      console.log(
+        '[soter] payload validated: required ' + audit.answeredRequired + '/' + audit.expectedRequired +
+        ', optional answered ' + audit.optionalAnswered + ', unexpected 0, issues 0'
+      );
+    }
     submitting = true;
     btnNext.disabled = true;
     btnBack.disabled = true;
     btnNext.textContent = 'Submitting…';
 
     try {
-      await submitToFirestore(data);
+      await submitResponse(data);
       try {
         sessionStorage.removeItem(DRAFT_KEY);
       } catch (e) {
@@ -802,14 +848,89 @@
     }
   }
 
-  // Submit to Firestore — replace with the Firebase SDK call (see firebase/config.js)
-  async function submitToFirestore(data) {
-    await new Promise((resolve) => setTimeout(resolve, 900));
-    // Example real integration:
-    //   const { addDoc, collection } = await import('https://www.gstatic.com/firebasejs/10.x/firebase-firestore.js');
-    //   await addDoc(collection(db, 'parentSurveyResponses'), data);
-    console.log('Family Voices Study response submitted: ' + JSON.stringify(data));
-    return true;
+  // Persistence completeness audit (spec §15/§16): verifies the collected
+  // payload against the live sequence/DOM before anything is written.
+  // Returns counts plus a list of blocking issues; issues.length must be 0.
+  function auditPayload(payload) {
+    const audit = {
+      expectedRequired: 0,
+      answeredRequired: 0,
+      optionalAnswered: 0,
+      missing: 0,
+      unexpected: [],
+      issues: []
+    };
+    if (!payload || typeof payload !== 'object' || !payload.answers || typeof payload.answers !== 'object') {
+      audit.issues.push('payload/answers missing');
+      return audit;
+    }
+    ['respondentType', 'isAnonymous', 'submittedAt', 'surveyVersion'].forEach((k) => {
+      if (!(k in payload)) audit.issues.push('missing field: ' + k);
+    });
+    if (typeof payload.isAnonymous !== 'boolean') audit.issues.push('isAnonymous not boolean');
+    if (typeof payload.submittedAt !== 'string') audit.issues.push('submittedAt not string');
+    const seq = getSequence();
+    const expectedQids = [];
+    seq.forEach((node) => {
+      if (node.dataset.flow !== 'question') return;
+      const qid = node.dataset.qid;
+      if (qid === 'entry-role' || qid === 'entry-age' || qid === 'q-anonymous') return;
+      expectedQids.push(qid);
+      const required = node.dataset.required === 'true';
+      if (required) audit.expectedRequired++;
+      if (qid === 'q-contact') {
+        if (payload.name && payload.email) {
+          if (required) audit.answeredRequired++;
+        } else if (required) {
+          audit.issues.push('missing identity for q-contact');
+        }
+        return;
+      }
+      const has = Object.prototype.hasOwnProperty.call(payload.answers, qid);
+      if (!has) {
+        if (required) audit.issues.push('missing required: ' + qid);
+        return;
+      }
+      if (required) audit.answeredRequired++;
+      else audit.optionalAnswered++;
+      const v = payload.answers[qid];
+      const radios = node.querySelectorAll('input[type="radio"]');
+      if (qid === 'q-consent') {
+        if (v !== true) audit.issues.push('consent not confirmed');
+      } else if (radios.length) {
+        if (typeof v !== 'string') {
+          audit.issues.push('type: ' + qid + ' expected string');
+        } else {
+          let found = false;
+          radios.forEach((r) => { if (r.value === v) found = true; });
+          if (!found) audit.issues.push('value out of options: ' + qid);
+        }
+      } else if (node.querySelectorAll('input[type="checkbox"]').length) {
+        if (!Array.isArray(v) || !v.length) {
+          audit.issues.push('type: ' + qid + ' expected non-empty array');
+        } else {
+          const opts = [];
+          node.querySelectorAll('input[type="checkbox"]').forEach((b) => opts.push(b.value));
+          if (new Set(v).size !== v.length) audit.issues.push('duplicate choices: ' + qid);
+          v.forEach((x) => { if (opts.indexOf(x) === -1) audit.issues.push('unknown choice: ' + qid + ' -> ' + x); });
+        }
+      } else if (typeof v !== 'string') {
+        audit.issues.push('type: ' + qid + ' expected string');
+      }
+    });
+    audit.unexpected = Object.keys(payload.answers).filter((k) => expectedQids.indexOf(k) === -1);
+    audit.unexpected.forEach((k) => audit.issues.push('unexpected answer: ' + k));
+    audit.missing = audit.expectedRequired - audit.answeredRequired;
+    return audit;
+  }
+
+  window.SoterPersistence = { audit: auditPayload };
+
+  async function submitResponse(data) {
+    if (!window.SoterFirebase || typeof window.SoterFirebase.submit !== 'function') {
+      throw new Error('Submission service unavailable');
+    }
+    return window.SoterFirebase.submit(data);
   }
 
   function setupEvents() {
