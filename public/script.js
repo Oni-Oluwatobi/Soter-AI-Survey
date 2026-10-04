@@ -93,6 +93,9 @@
     if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
       return 'Email or password is incorrect.';
     }
+    if (code === 'auth/email-already-in-use') return 'An account with this email already exists. Use Sign In instead.';
+    if (code === 'auth/weak-password') return 'Password must be at least 6 characters.';
+    if (code === 'auth/invalid-email') return 'Please enter a valid email address.';
     if (code === 'auth/too-many-requests') return 'Too many attempts. Please try again later.';
     if (code === 'auth/invalid-phone-number') return 'Please enter a valid phone number including country code.';
     if (code === 'auth/invalid-verification-code') return 'That verification code is not valid.';
@@ -116,15 +119,29 @@
     showChoices();
   }
 
-  $('btn-email-signin').addEventListener('click', () => {
+  // 'create' = account creation (with confirm password), 'signin' = existing user.
+  let emailMode = 'create';
+
+  function openEmailForm(mode) {
+    emailMode = mode;
     hide(choices);
     show(emailForm);
+    $('confirm-block').hidden = mode !== 'create';
+    $('btn-email-submit').textContent = mode === 'create' ? 'Create account' : 'Sign in';
+    $('auth-password').autocomplete = mode === 'create' ? 'new-password' : 'current-password';
+    $('email-error').hidden = true;
     $('auth-email').focus();
-  });
+  }
 
-  $('btn-phone-signin').addEventListener('click', () => {
+  $('btn-create-account').addEventListener('click', () => openEmailForm('create'));
+
+  $('btn-email-signin').addEventListener('click', () => openEmailForm('signin'));
+
+  $('btn-use-phone').addEventListener('click', () => {
     hide(choices);
+    hide(emailForm);
     show(phoneForm);
+    $('phone-error').hidden = true;
     $('auth-phone').focus();
   });
 
@@ -136,11 +153,26 @@
     e.preventDefault();
     const errEl = $('email-error');
     errEl.hidden = true;
+    const email = $('auth-email').value.trim();
+    const password = $('auth-password').value;
     try {
-      const summary = await window.SoterFirebase.signInEmail(
-        $('auth-email').value.trim(),
-        $('auth-password').value
-      );
+      let summary;
+      if (emailMode === 'create') {
+        const confirm = $('auth-confirm').value;
+        if (password.length < 6) {
+          errEl.textContent = 'Password must be at least 6 characters.';
+          errEl.hidden = false;
+          return;
+        }
+        if (password !== confirm) {
+          errEl.textContent = 'Passwords do not match.';
+          errEl.hidden = false;
+          return;
+        }
+        summary = await window.SoterFirebase.createAccount(email, password);
+      } else {
+        summary = await window.SoterFirebase.signInEmail(email, password);
+      }
       afterAuth(Object.assign({ mode: 'email' }, summary));
     } catch (err) {
       showError(errEl, err);
@@ -172,7 +204,7 @@
     }
   });
 
-  nameForm.addEventListener('submit', (e) => {
+  nameForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = $('auth-name').value.trim();
     const errEl = $('name-error');
@@ -182,6 +214,9 @@
       return;
     }
     errEl.hidden = true;
+    try {
+      await window.SoterFirebase.setDisplayName(name);
+    } catch (err) { /* profile save failed — name still kept for this session */ }
     finish(Object.assign({}, pendingAuth, { name }));
   });
 

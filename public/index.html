@@ -53,21 +53,26 @@
 
       <div class="auth-gate" id="auth-gate">
         <div class="auth-choices" id="auth-choices">
-          <button type="button" class="btn btn-primary" id="btn-email-signin">Email sign-in</button>
-          <button type="button" class="btn btn-primary" id="btn-phone-signin">Phone sign-in</button>
-          <button type="button" class="btn btn-secondary" id="btn-anonymous">Continue anonymously</button>
+          <button type="button" class="btn btn-primary" id="btn-create-account">Create Account</button>
+          <button type="button" class="btn btn-primary" id="btn-email-signin">Sign In</button>
+          <button type="button" class="btn btn-secondary" id="btn-anonymous">Continue Anonymously</button>
         </div>
 
         <form class="auth-form" id="email-form" hidden>
           <label class="field-label" for="auth-email">Email address</label>
           <input class="form-input" type="email" id="auth-email" autocomplete="email" required>
           <label class="field-label" for="auth-password">Password</label>
-          <input class="form-input" type="password" id="auth-password" autocomplete="current-password" required>
+          <input class="form-input" type="password" id="auth-password" autocomplete="new-password" required>
+          <div id="confirm-block" hidden>
+            <label class="field-label" for="auth-confirm">Confirm password</label>
+            <input class="form-input" type="password" id="auth-confirm" autocomplete="new-password">
+          </div>
           <p class="auth-error" id="email-error" hidden></p>
           <div class="auth-actions">
-            <button type="submit" class="btn btn-primary">Sign in</button>
+            <button type="submit" class="btn btn-primary" id="btn-email-submit">Create account</button>
             <button type="button" class="btn btn-secondary auth-back">Back</button>
           </div>
+          <button type="button" class="btn btn-secondary" id="btn-use-phone">Use phone instead</button>
         </form>
 
         <form class="auth-form" id="phone-form" hidden>
@@ -76,14 +81,14 @@
           <div id="auth-recaptcha"></div>
           <p class="auth-error" id="phone-error" hidden></p>
           <div class="auth-actions">
-            <button type="submit" class="btn btn-primary" id="btn-send-code">Send code</button>
+            <button type="submit" class="btn btn-primary" id="btn-send-code">Send OTP</button>
             <button type="button" class="btn btn-secondary auth-back">Back</button>
           </div>
           <div id="otp-block" hidden>
             <label class="field-label" for="auth-otp">Verification code</label>
             <input class="form-input" type="text" id="auth-otp" inputmode="numeric" autocomplete="one-time-code">
             <div class="auth-actions">
-              <button type="button" class="btn btn-primary" id="btn-verify-code">Verify</button>
+              <button type="button" class="btn btn-primary" id="btn-verify-code">Verify OTP</button>
             </div>
           </div>
         </form>

@@ -61,6 +61,26 @@ window.SoterFirebase = (function () {
     });
   }
 
+  // Email account creation (Firebase createUserWithEmailAndPassword).
+  function createAccount(email, password) {
+    return loadAuth().then(function (p) {
+      return p.authMod.createUserWithEmailAndPassword(p.auth, email, password)
+        .then(function (cred) { return authSummary(cred.user); });
+    });
+  }
+
+  // Save the collected name to the Firebase Auth profile so future
+  // sign-ins already have it (no re-asking).
+  function setDisplayName(name) {
+    return loadAuth().then(function (p) {
+      var user = p.auth.currentUser;
+      if (!user) return null;
+      return p.authMod.updateProfile(user, { displayName: name }).then(function () {
+        return authSummary(user);
+      });
+    });
+  }
+
   // Phone sign-in: sends an SMS code, returns a confirm(code) function.
   function startPhoneSignIn(phoneNumber) {
     return loadAuth().then(function (p) {
@@ -125,5 +145,11 @@ window.SoterFirebase = (function () {
     });
   }
 
-  return { submit: submit, signInEmail: signInEmail, startPhoneSignIn: startPhoneSignIn };
+  return {
+    submit: submit,
+    signInEmail: signInEmail,
+    createAccount: createAccount,
+    setDisplayName: setDisplayName,
+    startPhoneSignIn: startPhoneSignIn
+  };
 })();
