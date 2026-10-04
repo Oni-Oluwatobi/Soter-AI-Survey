@@ -16,7 +16,17 @@
   const navError = document.getElementById('nav-error');
 
   const DRAFT_KEY = 'soter-survey-draft';
+  const AUTH_KEY = 'soter-auth';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function readAuthSession() {
+    try {
+      const raw = sessionStorage.getItem(AUTH_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
 
   let items = [];
   let currentQid = null;
@@ -295,7 +305,14 @@
       }
     } else {
       const branch = model[state.role];
-      if (branch) sequence.push(...branch, ...model.privacyAdult);
+      if (branch) {
+        // Identity is decided on the welcome screen (email/phone/anonymous) —
+        // the old end-of-survey toggle + contact step is removed.
+        const privacy = model.privacyAdult.filter(
+          (it) => it.qid !== 'q-anonymous' && it.qid !== 'q-contact'
+        );
+        sequence.push(...branch, ...privacy);
+      }
     }
     return sequence;
   }
@@ -777,18 +794,23 @@
       }
     });
     const isChild = state.role === 'child';
-    const isAnonymous = isChild ? true : state.anonymous;
+    const auth = readAuthSession() || {};
+    const identified = auth.mode === 'email' || auth.mode === 'phone';
     const payload = {
       respondentType: state.role,
       ageGroup: isChild ? state.ageGroup : null,
       answers,
-      isAnonymous,
+      isAnonymous: !identified,
+      uid: identified && auth.uid ? String(auth.uid) : null,
       submittedAt: new Date().toISOString(),
       surveyVersion: '2.0'
     };
-    if (!isAnonymous) {
-      payload.name = (state.participantName || '').trim();
-      payload.email = (state.participantEmail || '').trim();
+    if (identified) {
+      payload.name = (auth.name || '').trim();
+      const email = (auth.email || '').trim();
+      const phone = (auth.phone || '').trim();
+      if (email) payload.email = email;
+      if (phone) payload.phone = phone;
     }
     return payload;
   }
@@ -869,6 +891,11 @@
     });
     if (typeof payload.isAnonymous !== 'boolean') audit.issues.push('isAnonymous not boolean');
     if (typeof payload.submittedAt !== 'string') audit.issues.push('submittedAt not string');
+    if (!payload.isAnonymous) {
+      if (!payload.uid) audit.issues.push('missing uid for identified response');
+      if (!payload.name) audit.issues.push('missing name for identified response');
+      if (!payload.email && !payload.phone) audit.issues.push('missing email/phone for identified response');
+    }
     const seq = getSequence();
     const expectedQids = [];
     seq.forEach((node) => {
@@ -1004,7 +1031,19 @@
   function init() {
     if (!window.SURVEY_MODEL) return;
 
+    // The welcome screen must collect an authentication choice
+    // (email / phone / anonymous) before the survey can be entered.
+    const authSession = readAuthSession();
+    if (
+      !authSession ||
+      (authSession.mode !== 'email' && authSession.mode !== 'phone' && authSession.mode !== 'anonymous')
+    ) {
+      window.location.replace('index.html');
+      return;
+    }
+
     restoreDraft();
+    state.anonymous = authSession.mode === 'anonymous';
 
     const params = new URLSearchParams(location.search);
     const requested = params.get('q');

@@ -50,7 +50,55 @@
         <span>• Confidential</span>
         <span>• Anonymous option</span>
       </div>
-      <a href="expect.html" class="btn btn-primary">Begin Survey →</a>
+
+      <div class="auth-gate" id="auth-gate">
+        <div class="auth-choices" id="auth-choices">
+          <button type="button" class="btn btn-primary" id="btn-email-signin">Email sign-in</button>
+          <button type="button" class="btn btn-primary" id="btn-phone-signin">Phone sign-in</button>
+          <button type="button" class="btn btn-secondary" id="btn-anonymous">Continue anonymously</button>
+        </div>
+
+        <form class="auth-form" id="email-form" hidden>
+          <label class="field-label" for="auth-email">Email address</label>
+          <input class="form-input" type="email" id="auth-email" autocomplete="email" required>
+          <label class="field-label" for="auth-password">Password</label>
+          <input class="form-input" type="password" id="auth-password" autocomplete="current-password" required>
+          <p class="auth-error" id="email-error" hidden></p>
+          <div class="auth-actions">
+            <button type="submit" class="btn btn-primary">Sign in</button>
+            <button type="button" class="btn btn-secondary auth-back">Back</button>
+          </div>
+        </form>
+
+        <form class="auth-form" id="phone-form" hidden>
+          <label class="field-label" for="auth-phone">Phone number</label>
+          <input class="form-input" type="tel" id="auth-phone" placeholder="+1 555 123 4567" autocomplete="tel" required>
+          <div id="auth-recaptcha"></div>
+          <p class="auth-error" id="phone-error" hidden></p>
+          <div class="auth-actions">
+            <button type="submit" class="btn btn-primary" id="btn-send-code">Send code</button>
+            <button type="button" class="btn btn-secondary auth-back">Back</button>
+          </div>
+          <div id="otp-block" hidden>
+            <label class="field-label" for="auth-otp">Verification code</label>
+            <input class="form-input" type="text" id="auth-otp" inputmode="numeric" autocomplete="one-time-code">
+            <div class="auth-actions">
+              <button type="button" class="btn btn-primary" id="btn-verify-code">Verify</button>
+            </div>
+          </div>
+        </form>
+
+        <form class="auth-form" id="name-form" hidden>
+          <label class="field-label" for="auth-name">Your name</label>
+          <input class="form-input" type="text" id="auth-name" autocomplete="name" placeholder="Your full name">
+          <p class="auth-error" id="name-error" hidden></p>
+          <div class="auth-actions">
+            <button type="submit" class="btn btn-primary">Continue</button>
+          </div>
+        </form>
+
+        <a href="expect.html" class="btn btn-primary" id="btn-begin" hidden>Begin Survey →</a>
+      </div>
     </div>
   </section>
 
@@ -62,6 +110,7 @@
     </div>
   </footer>
 
+  <script src="firebase/config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

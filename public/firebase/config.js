@@ -18,10 +18,60 @@ window.SoterFirebase = (function () {
 
   var SDK = 'https://www.gstatic.com/firebasejs/10.12.2';
   var ready = null;
+  var authReady = null;
   var clockOffset = 0;
 
   function isDev() {
     return /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  }
+
+  function loadAuth() {
+    if (!authReady) {
+      authReady = Promise.all([
+        import(SDK + '/firebase-app.js'),
+        import(SDK + '/firebase-auth.js')
+      ]).then(function (mods) {
+        var appMod = mods[0];
+        var app = appMod.getApps().length
+          ? appMod.getApps()[0]
+          : appMod.initializeApp(window.FIREBASE_CONFIG);
+        return { auth: mods[1].getAuth(app), authMod: mods[1] };
+      }).catch(function (err) {
+        authReady = null;
+        throw err;
+      });
+    }
+    return authReady;
+  }
+
+  function authSummary(user) {
+    return {
+      uid: user.uid,
+      email: user.email || '',
+      phone: user.phoneNumber || '',
+      name: user.displayName || ''
+    };
+  }
+
+  // Email sign-in (Firebase Auth, existing soter-ai project).
+  function signInEmail(email, password) {
+    return loadAuth().then(function (p) {
+      return p.authMod.signInWithEmailAndPassword(p.auth, email, password)
+        .then(function (cred) { return authSummary(cred.user); });
+    });
+  }
+
+  // Phone sign-in: sends an SMS code, returns a confirm(code) function.
+  function startPhoneSignIn(phoneNumber) {
+    return loadAuth().then(function (p) {
+      var verifier = new p.authMod.RecaptchaVerifier(p.auth, 'auth-recaptcha', { size: 'invisible' });
+      return p.authMod.signInWithPhoneNumber(p.auth, phoneNumber, verifier)
+        .then(function (confirmation) {
+          return function (code) {
+            return confirmation.confirm(code).then(function (cred) { return authSummary(cred.user); });
+          };
+        });
+    });
   }
 
   function load() {
@@ -75,5 +125,5 @@ window.SoterFirebase = (function () {
     });
   }
 
-  return { submit: submit };
+  return { submit: submit, signInEmail: signInEmail, startPhoneSignIn: startPhoneSignIn };
 })();
