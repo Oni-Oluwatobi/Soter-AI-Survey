@@ -20,7 +20,7 @@ window.SURVEY_MODEL.entryRole = {
   options: [
     { value: 'parent', title: 'Parent', desc: 'I am a parent of one or more children' },
     { value: 'guardian', title: 'Guardian', desc: 'I am a guardian or carer for a child or young person' },
-    { value: 'child', title: 'Child / Young Person', desc: 'I am under 18 and answering for myself' }
+    { value: 'child', title: 'Child / Young Person', desc: 'I am answering for myself' }
   ],
   required: true,
   error: 'Please select who you are.'
@@ -40,7 +40,8 @@ window.SURVEY_MODEL.entryAge = {
     { value: '8-10', title: '8–10 years' },
     { value: '11-13', title: '11–13 years' },
     { value: '14-16', title: '14–16 years' },
-    { value: '17-18', title: '17–18 years' }
+    { value: '17-18', title: '17–18 years' },
+    { value: '18+', title: '18 years or older' }
   ],
   required: true,
   error: 'Please select your age group.'
@@ -186,6 +187,15 @@ window.SURVEY_MODEL.parent = [
     label: 'Describe a recent moment when you and your child misunderstood each other.',
     hint: 'Optional — a sentence or two is enough. Please do not use names.',
     placeholder: 'For example: We both wanted different plans for the weekend…',
+    required: false
+  },
+  {
+    type: 'textarea',
+    qid: 'p-difficult',
+    section: 'Communication at home',
+    label: 'What conversations or topics do you find difficult to discuss with your parents?',
+    hint: 'Optional — a sentence or two is enough. Please do not use names.',
+    placeholder: 'Your thoughts…',
     required: false
   },
   {
@@ -437,6 +447,15 @@ window.SURVEY_MODEL.guardian = [
     label: 'Describe a recent moment when you and the child or young person in your care misunderstood each other.',
     hint: 'Optional — a sentence or two is enough. Please do not use names.',
     placeholder: 'For example: We both expected different things about…',
+    required: false
+  },
+  {
+    type: 'textarea',
+    qid: 'g-difficult',
+    section: 'Communication at home',
+    label: 'What conversations or topics do you find difficult to discuss with your parents?',
+    hint: 'Optional — a sentence or two is enough. Please do not use names.',
+    placeholder: 'Your thoughts…',
     required: false
   },
   {
@@ -695,6 +714,15 @@ window.SURVEY_MODEL.child_8_10 = [
     required: false
   },
   {
+    type: 'textarea',
+    qid: 'c8-difficult',
+    section: 'Talking at home',
+    label: 'What conversations or topics do you find difficult to discuss with your parents?',
+    hint: 'Optional — you can write as much or as little as you like.',
+    placeholder: 'Your thoughts…',
+    required: false
+  },
+  {
     type: 'section',
     qid: 's-devices',
     section: 'Screens and games',
@@ -887,6 +915,15 @@ window.SURVEY_MODEL.child_11_13 = [
     label: 'Describe a recent moment when you and a parent or guardian misunderstood each other.',
     hint: 'Optional — please do not use names.',
     placeholder: 'For example: They thought I meant… but I meant…',
+    required: false
+  },
+  {
+    type: 'textarea',
+    qid: 'c11-difficult',
+    section: 'Talking at home',
+    label: 'What conversations or topics do you find difficult to discuss with your parents?',
+    hint: 'Optional — please do not use names.',
+    placeholder: 'Your thoughts…',
     required: false
   },
   {
@@ -1098,6 +1135,15 @@ window.SURVEY_MODEL.child_14_16 = [
     label: 'Describe a recent moment when you and a parent or guardian misunderstood each other.',
     hint: 'Optional — please do not use names.',
     placeholder: 'For example: They assumed I was… but actually…',
+    required: false
+  },
+  {
+    type: 'textarea',
+    qid: 'c14-difficult',
+    section: 'Communication at home',
+    label: 'What conversations or topics do you find difficult to discuss with your parents?',
+    hint: 'Optional — please do not use names.',
+    placeholder: 'Your thoughts…',
     required: false
   },
   {
@@ -1316,6 +1362,15 @@ window.SURVEY_MODEL.child_17_18 = [
     label: 'Where would you like more independence than you currently have?',
     hint: 'Optional — a sentence or two is enough.',
     placeholder: 'For example: Making my own plans at the weekend…',
+    required: false
+  },
+  {
+    type: 'textarea',
+    qid: 'c17-difficult',
+    section: 'Communication at home',
+    label: 'What conversations or topics do you find difficult to discuss with your parents?',
+    hint: 'Optional — a sentence or two is enough.',
+    placeholder: 'Your thoughts…',
     required: false
   },
   {

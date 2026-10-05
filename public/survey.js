@@ -43,6 +43,16 @@
     participantEmail: ''
   };
 
+  // Age group → question branch. "18+" (young adults and up who answer for
+  // themselves) uses the 17–18 branch, which is written for that audience.
+  const AGE_BRANCHES = {
+    '8-10': 'child_8_10',
+    '11-13': 'child_11_13',
+    '14-16': 'child_14_16',
+    '17-18': 'child_17_18',
+    '18+': 'child_17_18'
+  };
+
   function h(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -300,7 +310,7 @@
     if (state.role === 'child') {
       sequence.push(model.entryAge);
       if (state.ageGroup) {
-        const branch = model['child_' + state.ageGroup.replace('-', '_')];
+        const branch = model[AGE_BRANCHES[state.ageGroup] || ''];
         if (branch) sequence.push(...branch, ...model.privacyChild);
       }
     } else {

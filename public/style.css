@@ -14,8 +14,13 @@
   --morning-mist: #F7F9E1;
   --white: #FFFFFF;
   --text-primary: #204654;
-  --text-secondary: #6B7C88;
+  --text-secondary: #5A6C77;
   --border-light: #E2E8E8;
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
   --header-h: 47px;
   --stage-max: 720px;
 }
@@ -50,10 +55,6 @@ a {
 :focus-visible {
   outline: 2px solid var(--teal-waters);
   outline-offset: 2px;
-}
-
-.btn-primary:focus-visible {
-  outline-color: var(--spring-meadow);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -125,7 +126,7 @@ a {
 
 .header-confidential {
   display: none;
-  font-size: 12px; color: var(--text-secondary); opacity: 0.6; white-space: nowrap;
+  font-size: 12px; font-weight: 500; color: var(--text-secondary); white-space: nowrap;
 }
 
 /* Hero (landing) */
@@ -152,7 +153,7 @@ a {
 
 .hero-meta {
   display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
-  margin: 0 0 32px; opacity: 0.75; font-size: 12px;
+  margin: 0 0 32px; font-size: 12px;
 }
 
 .hero-meta span {
@@ -177,7 +178,7 @@ a {
 
 .overline {
   font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--teal-waters); opacity: 0.7;
+  text-transform: uppercase; color: var(--teal-waters); opacity: 0.85;
   margin: 0 0 8px;
 }
 
@@ -691,6 +692,7 @@ body.page-white {
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 13px 18px;
+  min-height: 46px;
   font-family: 'DM Sans', sans-serif;
   font-size: 14px; font-weight: 600;
   text-align: center; cursor: pointer;
@@ -841,9 +843,9 @@ body.page-white {
 }
 
 .splash-meta {
-  font-size: 12px; color: var(--text-secondary);
+  font-size: 12px; font-weight: 500; color: var(--text-secondary);
   letter-spacing: 0.1em; text-transform: uppercase;
-  opacity: 0.6; margin: 0;
+  margin: 0;
 }
 
 .splash-progress-bar {
@@ -1050,18 +1052,35 @@ body.page-white {
 }
 
 
-/* ---- Welcome screen auth gate (email / phone / anonymous) ---- */
+/* ---- Landing stages: auth (sign up / sign in) + welcome ---- */
+.hero-stage {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-stage[hidden] {
+  display: none;
+}
+
+.hero-headline-compact {
+  font-size: clamp(26px, 7vw, 36px);
+  margin-bottom: 10px;
+}
+
 .auth-gate {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
 }
 
 .auth-choices {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2);
   width: 100%;
   max-width: 360px;
 }
@@ -1069,15 +1088,25 @@ body.page-white {
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   width: min(360px, 100%);
   text-align: left;
+  margin: 0;
 }
 
 .auth-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
-  margin-top: 4px;
+  margin-top: var(--space-1);
+}
+
+.auth-actions .btn {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: none;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .auth-error {
@@ -1088,4 +1117,81 @@ body.page-white {
   border-left: 3px solid var(--spring-meadow);
   padding: 4px 0 4px 12px;
   margin: 0;
+}
+
+/* Password fields with Show/Hide toggle */
+.input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.input-wrap .form-input {
+  padding-right: 66px;
+}
+
+.input-affix {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  min-height: 44px;
+  padding: 0 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--teal-waters);
+  cursor: pointer;
+}
+
+.input-affix:hover {
+  background: rgba(202, 255, 166, 0.35);
+}
+
+/* Loading state: spinner + no double submit (button is disabled too) */
+.btn.is-loading {
+  pointer-events: none;
+}
+
+.btn.is-loading::after {
+  content: '';
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+  margin-left: 2px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.7s linear infinite;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Welcome stage (after authentication) */
+.welcome-note {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  max-width: 52ch;
+  margin: -12px 0 var(--space-3);
+}
+
+.welcome-session {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4);
+}
+
+.welcome-session[hidden] {
+  display: none;
 }

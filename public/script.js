@@ -22,22 +22,30 @@
   window.addEventListener('touchmove', hideSplash, { passive: true, once: true });
 })();
 
-// Landing page: authentication gate — the user must choose email sign-in,
-// phone sign-in, or anonymous BEFORE entering the survey.
+// Landing page: sign up / sign in first, then a welcome screen with the
+// Begin Survey action. Three paths: create account, sign in (email or
+// phone), or continue anonymously — all land on the welcome screen.
 (() => {
   'use strict';
 
   const AUTH_KEY = 'soter-auth';
   const $ = (id) => document.getElementById(id);
+  const authStage = $('auth-stage');
+  const welcomeStage = $('welcome-stage');
+  const welcomeSession = $('welcome-session');
   const choices = $('auth-choices');
   const emailForm = $('email-form');
   const phoneForm = $('phone-form');
   const nameForm = $('name-form');
-  const beginBtn = $('btn-begin');
   const otpBlock = $('otp-block');
 
   let pendingAuth = null;
   let confirmPhone = null;
+  let emailBusy = false;
+  let phoneBusy = false;
+  let nameBusy = false;
+
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   function readSession() {
     try { return JSON.parse(sessionStorage.getItem(AUTH_KEY)); } catch (e) { return null; }
@@ -51,15 +59,38 @@
     hide(emailForm);
     hide(phoneForm);
     hide(nameForm);
-    hide(beginBtn);
   }
 
-  function showBegin() {
-    hide(choices);
-    hide(emailForm);
-    hide(phoneForm);
-    hide(nameForm);
-    show(beginBtn);
+  function describeSession(s) {
+    if (s.mode === 'anonymous') return 'You are taking part anonymously.';
+    const who = (s.name || s.email || s.phone || '').trim();
+    return who ? 'Signed in as ' + who : 'Signed in';
+  }
+
+  function showWelcome(session, opts = {}) {
+    welcomeSession.textContent = describeSession(session);
+    show(welcomeSession);
+    hide(authStage);
+    show(welcomeStage);
+    if (opts.focus) {
+      const heading = $('welcome-heading');
+      if (heading) heading.focus({ preventScroll: true });
+    }
+  }
+
+  // Loading state: disables the button (no double submit), swaps the label,
+  // and shows a spinner via .is-loading.
+  function setBusy(btn, busy, busyLabel) {
+    if (busy) {
+      btn.dataset.label = btn.textContent;
+      btn.disabled = true;
+      btn.classList.add('is-loading');
+      btn.textContent = busyLabel;
+    } else {
+      btn.disabled = false;
+      btn.classList.remove('is-loading');
+      if (btn.dataset.label) btn.textContent = btn.dataset.label;
+    }
   }
 
   function finish(summary) {
@@ -71,7 +102,7 @@
       name: summary.name || ''
     };
     try { sessionStorage.setItem(AUTH_KEY, JSON.stringify(session)); } catch (e) { /* storage unavailable */ }
-    showBegin();
+    showWelcome(session, { focus: true });
   }
 
   function afterAuth(summary) {
@@ -108,13 +139,33 @@
     el.hidden = false;
   }
 
-  const existing = readSession();
-  if (existing && existing.mode === 'anonymous') {
-    window.location.replace('expect.html');
-    return;
+  function showLocalError(el, message) {
+    el.textContent = message;
+    el.hidden = false;
   }
-  if (existing && (existing.mode === 'email' || existing.mode === 'phone')) {
-    showBegin();
+
+  // Password visibility toggles (email + confirm fields).
+  function wireToggle(btnId, inputId) {
+    const btn = $(btnId);
+    const input = $(inputId);
+    if (!btn || !input) return;
+    btn.addEventListener('click', () => {
+      const revealing = input.type === 'password';
+      input.type = revealing ? 'text' : 'password';
+      btn.textContent = revealing ? 'Hide' : 'Show';
+      btn.setAttribute('aria-label', revealing ? 'Hide password' : 'Show password');
+      input.focus();
+    });
+  }
+  wireToggle('btn-toggle-password', 'auth-password');
+  wireToggle('btn-toggle-confirm', 'auth-confirm');
+
+  const existing = readSession();
+  if (
+    existing &&
+    (existing.mode === 'email' || existing.mode === 'phone' || existing.mode === 'anonymous')
+  ) {
+    showWelcome(existing);
   } else {
     showChoices();
   }
@@ -151,43 +202,79 @@
 
   emailForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (emailBusy) return;
     const errEl = $('email-error');
     errEl.hidden = true;
     const email = $('auth-email').value.trim();
     const password = $('auth-password').value;
+    const submitBtn = $('btn-email-submit');
+
+    if (!email || !EMAIL_RE.test(email)) {
+      showLocalError(errEl, 'Please enter a valid email address.');
+      $('auth-email').focus();
+      return;
+    }
+    if (!password) {
+      showLocalError(errEl, 'Please enter your password.');
+      $('auth-password').focus();
+      return;
+    }
+    if (emailMode === 'create') {
+      const confirm = $('auth-confirm').value;
+      if (password.length < 6) {
+        showLocalError(errEl, 'Password must be at least 6 characters.');
+        $('auth-password').focus();
+        return;
+      }
+      if (password !== confirm) {
+        showLocalError(errEl, 'Passwords do not match.');
+        $('auth-confirm').focus();
+        return;
+      }
+    }
+
+    emailBusy = true;
+    setBusy(submitBtn, true, emailMode === 'create' ? 'Creating account…' : 'Signing in…');
     try {
       let summary;
       if (emailMode === 'create') {
-        const confirm = $('auth-confirm').value;
-        if (password.length < 6) {
-          errEl.textContent = 'Password must be at least 6 characters.';
-          errEl.hidden = false;
-          return;
-        }
-        if (password !== confirm) {
-          errEl.textContent = 'Passwords do not match.';
-          errEl.hidden = false;
-          return;
-        }
         summary = await window.SoterFirebase.createAccount(email, password);
       } else {
         summary = await window.SoterFirebase.signInEmail(email, password);
       }
+      emailBusy = false;
+      setBusy(submitBtn, false);
       afterAuth(Object.assign({ mode: 'email' }, summary));
     } catch (err) {
+      emailBusy = false;
+      setBusy(submitBtn, false);
       showError(errEl, err);
     }
   });
 
   phoneForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (phoneBusy) return;
     const errEl = $('phone-error');
     errEl.hidden = true;
+    const phone = $('auth-phone').value.trim();
+    if (!phone) {
+      showLocalError(errEl, 'Please enter your phone number.');
+      $('auth-phone').focus();
+      return;
+    }
+    const submitBtn = $('btn-send-code');
+    phoneBusy = true;
+    setBusy(submitBtn, true, 'Sending…');
     try {
-      confirmPhone = await window.SoterFirebase.startPhoneSignIn($('auth-phone').value.trim());
+      confirmPhone = await window.SoterFirebase.startPhoneSignIn(phone);
+      phoneBusy = false;
+      setBusy(submitBtn, false);
       show(otpBlock);
       $('auth-otp').focus();
     } catch (err) {
+      phoneBusy = false;
+      setBusy(submitBtn, false);
       showError(errEl, err);
     }
   });
@@ -195,33 +282,51 @@
   $('btn-verify-code').addEventListener('click', async () => {
     const errEl = $('phone-error');
     errEl.hidden = true;
-    if (!confirmPhone) return;
+    if (phoneBusy || !confirmPhone) return;
+    const code = $('auth-otp').value.trim();
+    if (!code) {
+      showLocalError(errEl, 'Please enter the verification code.');
+      $('auth-otp').focus();
+      return;
+    }
+    const verifyBtn = $('btn-verify-code');
+    phoneBusy = true;
+    setBusy(verifyBtn, true, 'Verifying…');
     try {
-      const summary = await confirmPhone($('auth-otp').value.trim());
+      const summary = await confirmPhone(code);
+      phoneBusy = false;
+      setBusy(verifyBtn, false);
       afterAuth(Object.assign({ mode: 'phone' }, summary));
     } catch (err) {
+      phoneBusy = false;
+      setBusy(verifyBtn, false);
       showError(errEl, err);
     }
   });
 
   nameForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (nameBusy) return;
     const name = $('auth-name').value.trim();
     const errEl = $('name-error');
     if (!name) {
-      errEl.textContent = 'Please enter your name.';
-      errEl.hidden = false;
+      showLocalError(errEl, 'Please enter your name.');
+      $('auth-name').focus();
       return;
     }
     errEl.hidden = true;
+    nameBusy = true;
+    const nameBtn = nameForm.querySelector('button[type="submit"]');
+    setBusy(nameBtn, true, 'Continuing…');
     try {
       await window.SoterFirebase.setDisplayName(name);
     } catch (err) { /* profile save failed — name still kept for this session */ }
+    nameBusy = false;
+    setBusy(nameBtn, false);
     finish(Object.assign({}, pendingAuth, { name }));
   });
 
   $('btn-anonymous').addEventListener('click', () => {
     finish({ mode: 'anonymous', uid: null, email: '', phone: '', name: '' });
-    window.location.href = 'expect.html';
   });
 })();

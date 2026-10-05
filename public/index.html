@@ -38,72 +38,93 @@
 
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <!-- Hero -->
-  <section class="hero" id="main" aria-labelledby="hero-heading">
+  <!-- Hero: stage 1 = sign up / sign in, stage 2 = welcome (after auth) -->
+  <section class="hero" id="main">
     <div class="hero-container">
-      <h1 id="hero-heading" class="hero-headline">Every family has a story worth hearing.</h1>
-      <p class="hero-subtitle">
-        Soter AI is listening to parents, guardians, and children around the world to better understand communication across generations, why conversations can become difficult, what helps families reconnect, and what families believe they need.
-      </p>
-      <div class="hero-meta">
-        <span>• Approximately 7–10 minutes</span>
-        <span>• Confidential</span>
-        <span>• Anonymous option</span>
-      </div>
 
-      <div class="auth-gate" id="auth-gate">
-        <div class="auth-choices" id="auth-choices">
-          <button type="button" class="btn btn-primary" id="btn-create-account">Create Account</button>
-          <button type="button" class="btn btn-primary" id="btn-email-signin">Sign In</button>
-          <button type="button" class="btn btn-secondary" id="btn-anonymous">Continue Anonymously</button>
-        </div>
+      <!-- Stage 1 — Sign up / Sign in (first screen after the splash) -->
+      <div class="hero-stage" id="auth-stage">
+        <p class="overline">Family Voices Study</p>
+        <h1 class="hero-headline hero-headline-compact">Sign up or sign in</h1>
+        <p class="hero-subtitle">
+          Create an account or sign in so your response stays with you — or continue anonymously. It only takes a moment.
+        </p>
 
-        <form class="auth-form" id="email-form" hidden>
-          <label class="field-label" for="auth-email">Email address</label>
-          <input class="form-input" type="email" id="auth-email" autocomplete="email" required>
-          <label class="field-label" for="auth-password">Password</label>
-          <input class="form-input" type="password" id="auth-password" autocomplete="new-password" required>
-          <div id="confirm-block" hidden>
-            <label class="field-label" for="auth-confirm">Confirm password</label>
-            <input class="form-input" type="password" id="auth-confirm" autocomplete="new-password">
+        <div class="auth-gate" id="auth-gate">
+          <div class="auth-choices" id="auth-choices">
+            <button type="button" class="btn btn-primary" id="btn-create-account">Create Account</button>
+            <button type="button" class="btn btn-primary" id="btn-email-signin">Sign In</button>
+            <button type="button" class="btn btn-secondary" id="btn-anonymous">Continue Anonymously</button>
           </div>
-          <p class="auth-error" id="email-error" hidden></p>
-          <div class="auth-actions">
-            <button type="submit" class="btn btn-primary" id="btn-email-submit">Create account</button>
-            <button type="button" class="btn btn-secondary auth-back">Back</button>
-          </div>
-          <button type="button" class="btn btn-secondary" id="btn-use-phone">Use phone instead</button>
-        </form>
 
-        <form class="auth-form" id="phone-form" hidden>
-          <label class="field-label" for="auth-phone">Phone number</label>
-          <input class="form-input" type="tel" id="auth-phone" placeholder="+1 555 123 4567" autocomplete="tel" required>
-          <div id="auth-recaptcha"></div>
-          <p class="auth-error" id="phone-error" hidden></p>
-          <div class="auth-actions">
-            <button type="submit" class="btn btn-primary" id="btn-send-code">Send OTP</button>
-            <button type="button" class="btn btn-secondary auth-back">Back</button>
-          </div>
-          <div id="otp-block" hidden>
-            <label class="field-label" for="auth-otp">Verification code</label>
-            <input class="form-input" type="text" id="auth-otp" inputmode="numeric" autocomplete="one-time-code">
-            <div class="auth-actions">
-              <button type="button" class="btn btn-primary" id="btn-verify-code">Verify OTP</button>
+          <form class="auth-form" id="email-form" novalidate hidden>
+            <label class="field-label" for="auth-email">Email address</label>
+            <input class="form-input" type="email" id="auth-email" autocomplete="email" maxlength="320" required aria-describedby="email-error">
+            <label class="field-label" for="auth-password">Password</label>
+            <div class="input-wrap">
+              <input class="form-input" type="password" id="auth-password" autocomplete="new-password" minlength="6" required aria-describedby="email-error">
+              <button type="button" class="input-affix" id="btn-toggle-password" aria-label="Show password">Show</button>
             </div>
-          </div>
-        </form>
+            <div id="confirm-block" hidden>
+              <label class="field-label" for="auth-confirm">Confirm password</label>
+              <div class="input-wrap">
+                <input class="form-input" type="password" id="auth-confirm" autocomplete="new-password" required aria-describedby="email-error">
+                <button type="button" class="input-affix" id="btn-toggle-confirm" aria-label="Show password">Show</button>
+              </div>
+            </div>
+            <p class="auth-error" id="email-error" role="alert" aria-live="polite" hidden></p>
+            <div class="auth-actions">
+              <button type="submit" class="btn btn-primary" id="btn-email-submit">Create account</button>
+              <button type="button" class="btn btn-secondary auth-back">Back</button>
+            </div>
+            <button type="button" class="btn btn-secondary" id="btn-use-phone">Use phone instead</button>
+          </form>
 
-        <form class="auth-form" id="name-form" hidden>
-          <label class="field-label" for="auth-name">Your name</label>
-          <input class="form-input" type="text" id="auth-name" autocomplete="name" placeholder="Your full name">
-          <p class="auth-error" id="name-error" hidden></p>
-          <div class="auth-actions">
-            <button type="submit" class="btn btn-primary">Continue</button>
-          </div>
-        </form>
+          <form class="auth-form" id="phone-form" novalidate hidden>
+            <label class="field-label" for="auth-phone">Phone number</label>
+            <input class="form-input" type="tel" id="auth-phone" placeholder="+1 555 123 4567" autocomplete="tel" maxlength="40" required aria-describedby="phone-error">
+            <div id="auth-recaptcha"></div>
+            <p class="auth-error" id="phone-error" role="alert" aria-live="polite" hidden></p>
+            <div class="auth-actions">
+              <button type="submit" class="btn btn-primary" id="btn-send-code">Send OTP</button>
+              <button type="button" class="btn btn-secondary auth-back">Back</button>
+            </div>
+            <div id="otp-block" hidden>
+              <label class="field-label" for="auth-otp">Verification code</label>
+              <input class="form-input" type="text" id="auth-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-describedby="phone-error">
+              <div class="auth-actions">
+                <button type="button" class="btn btn-primary" id="btn-verify-code">Verify OTP</button>
+              </div>
+            </div>
+          </form>
 
-        <a href="expect.html" class="btn btn-primary" id="btn-begin" hidden>Begin Survey →</a>
+          <form class="auth-form" id="name-form" novalidate hidden>
+            <label class="field-label" for="auth-name">Your name</label>
+            <input class="form-input" type="text" id="auth-name" autocomplete="name" placeholder="Your full name" maxlength="200" required aria-describedby="name-error">
+            <p class="auth-error" id="name-error" role="alert" aria-live="polite" hidden></p>
+            <div class="auth-actions">
+              <button type="submit" class="btn btn-primary">Continue</button>
+            </div>
+          </form>
+        </div>
       </div>
+
+      <!-- Stage 2 — Welcome (revealed once signed up / signed in / anonymous) -->
+      <div class="hero-stage" id="welcome-stage" hidden>
+        <h1 class="hero-headline" id="welcome-heading" tabindex="-1">Every family has a story worth hearing.</h1>
+        <p class="hero-subtitle">
+          Soter AI is listening to parents, guardians, and children around the world to better understand communication across generations, why conversations can become difficult, what helps families reconnect, and what families believe they need.
+        </p>
+        <div class="hero-meta">
+          <span>• Approximately 7–10 minutes</span>
+          <span>• Confidential</span>
+          <span>• Anonymous option</span>
+        </div>
+        <p class="welcome-note">Private by default — your answers are confidential, and you can take part anonymously.</p>
+        <p class="welcome-session" id="welcome-session" aria-live="polite" hidden></p>
+        <a href="expect.html" class="btn btn-primary" id="btn-begin">Begin Survey →</a>
+      </div>
+
     </div>
   </section>
 

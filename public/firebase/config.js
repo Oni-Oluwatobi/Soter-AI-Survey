@@ -20,6 +20,16 @@ window.SoterFirebase = (function () {
   var ready = null;
   var authReady = null;
   var clockOffset = 0;
+  var dbTries = 0;
+  var authTries = 0;
+
+  // Dynamic imports are cached by URL — including failed imports. If an
+  // import fails (e.g. the network was briefly down), a retry with the same
+  // URL would replay the cached failure forever. On retries, bust the URL so
+  // the module is actually fetched again.
+  function sdkUrl(name, n) {
+    return SDK + '/' + name + (n > 1 ? '?retry=' + Date.now() : '');
+  }
 
   function isDev() {
     return /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
@@ -27,9 +37,10 @@ window.SoterFirebase = (function () {
 
   function loadAuth() {
     if (!authReady) {
+      authTries += 1;
       authReady = Promise.all([
-        import(SDK + '/firebase-app.js'),
-        import(SDK + '/firebase-auth.js')
+        import(sdkUrl('firebase-app.js', authTries)),
+        import(sdkUrl('firebase-auth.js', authTries))
       ]).then(function (mods) {
         var appMod = mods[0];
         var app = appMod.getApps().length
@@ -96,9 +107,10 @@ window.SoterFirebase = (function () {
 
   function load() {
     if (!ready) {
+      dbTries += 1;
       ready = Promise.all([
-        import(SDK + '/firebase-app.js'),
-        import(SDK + '/firebase-database.js')
+        import(sdkUrl('firebase-app.js', dbTries)),
+        import(sdkUrl('firebase-database.js', dbTries))
       ]).then(function (mods) {
         var appMod = mods[0];
         var dbMod = mods[1];
