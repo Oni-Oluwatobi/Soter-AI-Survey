@@ -42,71 +42,86 @@
   <section class="hero" id="main">
     <div class="hero-container">
 
-      <!-- Stage 1 — Sign up / Sign in (first screen after the splash) -->
+      <!-- Stage 1 — Authentication, one screen at a time:
+           choice → create / sign in / phone (+ OTP) / name -->
       <div class="hero-stage" id="auth-stage">
-        <p class="overline">Family Voices Study</p>
-        <h1 class="hero-headline hero-headline-compact">Sign up or sign in</h1>
-        <p class="hero-subtitle">
-          Create an account or sign in so your response stays with you — or continue anonymously. It only takes a moment.
-        </p>
 
-        <div class="auth-gate" id="auth-gate">
+        <!-- Screen: authentication choice (the only thing shown after the splash) -->
+        <div class="auth-screen" id="screen-choice">
+          <p class="overline">Family Voices Study</p>
+          <h1 class="hero-headline hero-headline-compact">Sign up or sign in</h1>
+          <p class="hero-subtitle">Choose how you'd like to continue — it only takes a moment.</p>
           <div class="auth-choices" id="auth-choices">
             <button type="button" class="btn btn-primary" id="btn-create-account">Create Account</button>
             <button type="button" class="btn btn-primary" id="btn-email-signin">Sign In</button>
             <button type="button" class="btn btn-secondary" id="btn-anonymous">Continue Anonymously</button>
           </div>
+        </div>
 
-          <form class="auth-form" id="email-form" novalidate hidden>
-            <label class="field-label" for="auth-email">Email address</label>
-            <input class="form-input" type="email" id="auth-email" autocomplete="email" maxlength="320" required aria-describedby="email-error">
-            <label class="field-label" for="auth-password">Password</label>
+        <!-- Screen: create account OR sign in (exactly one mode at a time) -->
+        <form class="auth-screen auth-form" id="email-form" novalidate hidden>
+          <h2 class="auth-screen-title" id="email-title">Create your account.</h2>
+          <p class="auth-screen-sub" id="email-sub">Use your email address and a password of at least 6 characters.</p>
+          <label class="field-label" for="auth-email">Email address</label>
+          <input class="form-input" type="email" id="auth-email" autocomplete="email" maxlength="320" required aria-describedby="email-error">
+          <label class="field-label" for="auth-password">Password</label>
+          <div class="input-wrap">
+            <input class="form-input" type="password" id="auth-password" autocomplete="new-password" minlength="6" required aria-describedby="email-error">
+            <button type="button" class="input-affix" id="btn-toggle-password" aria-label="Show password">Show</button>
+          </div>
+          <div id="confirm-block" hidden>
+            <label class="field-label" for="auth-confirm">Confirm password</label>
             <div class="input-wrap">
-              <input class="form-input" type="password" id="auth-password" autocomplete="new-password" minlength="6" required aria-describedby="email-error">
-              <button type="button" class="input-affix" id="btn-toggle-password" aria-label="Show password">Show</button>
+              <input class="form-input" type="password" id="auth-confirm" autocomplete="new-password" required aria-describedby="email-error">
+              <button type="button" class="input-affix" id="btn-toggle-confirm" aria-label="Show password">Show</button>
             </div>
-            <div id="confirm-block" hidden>
-              <label class="field-label" for="auth-confirm">Confirm password</label>
-              <div class="input-wrap">
-                <input class="form-input" type="password" id="auth-confirm" autocomplete="new-password" required aria-describedby="email-error">
-                <button type="button" class="input-affix" id="btn-toggle-confirm" aria-label="Show password">Show</button>
-              </div>
-            </div>
-            <p class="auth-error" id="email-error" role="alert" aria-live="polite" hidden></p>
-            <div class="auth-actions">
-              <button type="submit" class="btn btn-primary" id="btn-email-submit">Create account</button>
-              <button type="button" class="btn btn-secondary auth-back">Back</button>
-            </div>
-            <button type="button" class="btn btn-secondary" id="btn-use-phone">Use phone instead</button>
-          </form>
+          </div>
+          <p class="auth-error" id="email-error" role="alert" aria-live="polite" hidden></p>
+          <div class="auth-actions">
+            <button type="submit" class="btn btn-primary" id="btn-email-submit">Create account</button>
+            <button type="button" class="btn btn-secondary" id="btn-email-back">Back</button>
+          </div>
+          <button type="button" class="btn btn-secondary" id="btn-use-phone">Use phone instead</button>
+        </form>
 
-          <form class="auth-form" id="phone-form" novalidate hidden>
+        <!-- Screen: phone authentication (progressive: number first, code only after sending) -->
+        <form class="auth-screen auth-form" id="phone-form" novalidate hidden>
+          <h2 class="auth-screen-title">Verify your phone.</h2>
+          <p class="auth-screen-sub">We'll text you a verification code to confirm your number.</p>
+          <div id="phone-step">
             <label class="field-label" for="auth-phone">Phone number</label>
             <input class="form-input" type="tel" id="auth-phone" placeholder="+1 555 123 4567" autocomplete="tel" maxlength="40" required aria-describedby="phone-error">
             <div id="auth-recaptcha"></div>
             <p class="auth-error" id="phone-error" role="alert" aria-live="polite" hidden></p>
             <div class="auth-actions">
               <button type="submit" class="btn btn-primary" id="btn-send-code">Send OTP</button>
-              <button type="button" class="btn btn-secondary auth-back">Back</button>
+              <button type="button" class="btn btn-secondary" id="btn-phone-back">Back</button>
             </div>
-            <div id="otp-block" hidden>
-              <label class="field-label" for="auth-otp">Verification code</label>
-              <input class="form-input" type="text" id="auth-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-describedby="phone-error">
-              <div class="auth-actions">
-                <button type="button" class="btn btn-primary" id="btn-verify-code">Verify OTP</button>
-              </div>
-            </div>
-          </form>
-
-          <form class="auth-form" id="name-form" novalidate hidden>
-            <label class="field-label" for="auth-name">Your name</label>
-            <input class="form-input" type="text" id="auth-name" autocomplete="name" placeholder="Your full name" maxlength="200" required aria-describedby="name-error">
-            <p class="auth-error" id="name-error" role="alert" aria-live="polite" hidden></p>
+          </div>
+          <div id="otp-block" hidden>
+            <p class="otp-sent" id="otp-sent"></p>
+            <label class="field-label" for="auth-otp">Verification code</label>
+            <input class="form-input" type="text" id="auth-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-describedby="otp-error">
+            <p class="auth-error" id="otp-error" role="alert" aria-live="polite" hidden></p>
             <div class="auth-actions">
-              <button type="submit" class="btn btn-primary">Continue</button>
+              <button type="button" class="btn btn-primary" id="btn-verify-code">Verify</button>
+              <button type="button" class="btn btn-secondary" id="btn-otp-back">Back</button>
             </div>
-          </form>
-        </div>
+          </div>
+        </form>
+
+        <!-- Screen: name (only when the account has no name yet) -->
+        <form class="auth-screen auth-form" id="name-form" novalidate hidden>
+          <h2 class="auth-screen-title">What should we call you?</h2>
+          <p class="auth-screen-sub">Your name helps us recognise you if you come back to your responses.</p>
+          <label class="field-label" for="auth-name">Your name</label>
+          <input class="form-input" type="text" id="auth-name" autocomplete="name" placeholder="Your full name" maxlength="200" required aria-describedby="name-error">
+          <p class="auth-error" id="name-error" role="alert" aria-live="polite" hidden></p>
+          <div class="auth-actions">
+            <button type="submit" class="btn btn-primary">Continue</button>
+          </div>
+        </form>
+
       </div>
 
       <!-- Stage 2 — Welcome (revealed once signed up / signed in / anonymous) -->
