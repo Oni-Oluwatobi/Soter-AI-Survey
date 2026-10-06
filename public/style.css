@@ -559,6 +559,24 @@ body.page-white {
   resize: vertical;
 }
 
+/* Custom answer — part of every choice question (radio / checkbox) */
+.other-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.other-textarea {
+  min-height: 84px;
+  margin: 0;
+}
+
+.choice-grid .other-block {
+  grid-column: 1 / -1;
+}
+
 .form-textarea:focus,
 .form-input:focus,
 .form-select:focus {

@@ -4,6 +4,12 @@
 // Branches: parent, guardian, child_8_10, child_11_13, child_14_16, child_17_18
 // Item types: section | radio | checkbox | textarea | toggle | contact | consent
 // All copy is neutral, international, research-oriented and age-appropriate.
+//
+// Custom answers: survey.js automatically gives every radio/checkbox question
+// an "Other — please specify" option with an unlimited textarea. The typed
+// answer is stored beside the question as "<qid>-other" — the "-other" suffix
+// is RESERVED and must never be used as a question qid. Opt out per question
+// with `other: false` (entry/routing screens are excluded automatically).
 
 window.SURVEY_MODEL = {};
 

@@ -17,6 +17,9 @@
 
   const DRAFT_KEY = 'soter-survey-draft';
   const AUTH_KEY = 'soter-auth';
+  // Custom answers are stored beside their question as "<qid>-other".
+  // This suffix is reserved — question qids must never end with it.
+  const OTHER_SUFFIX = '-other';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   function readAuthSession() {
@@ -67,6 +70,7 @@
     if (item.qid === 'entry-role') node.className += ' welcome-card';
     node.dataset.flow = item.type === 'section' ? 'section' : 'question';
     node.dataset.qid = item.qid;
+    node.dataset.type = item.type || '';
     node.dataset.section = item.section || '';
     if (item.entry) node.dataset.entry = 'true';
     if (item.required) node.dataset.required = 'true';
@@ -87,6 +91,100 @@
     const hint = h('p', 'question-hint', item.hint);
     hint.id = item.qid + '-hint';
     return hint;
+  }
+
+  // ---- Custom answer ("Other — please specify") ----
+  // Every choice question (radio / checkbox) gets one automatically, except
+  // entry/routing screens (item.entry) and questions opting out (other: false).
+  // If the question already offers a value "other" option, that option becomes
+  // the carrier of the textarea; otherwise one is appended.
+  function otherSentinel(item) {
+    if (!item || item.entry || item.other === false) return null;
+    if (item.type !== 'radio' && item.type !== 'checkbox') return null;
+    if (!Array.isArray(item.options) || !item.options.length) return null;
+    let sentinel = null;
+    item.options.forEach((opt) => {
+      if (opt.value === 'other') sentinel = 'other';
+    });
+    return sentinel || '__other__';
+  }
+
+  function appendOtherBlock(node, item, controls) {
+    const sentinel = otherSentinel(item);
+    if (!sentinel) return;
+    const block = h('div', 'other-block');
+    block.dataset.otherFor = item.qid;
+    if (sentinel === '__other__') {
+      const input = document.createElement('input');
+      input.type = item.type;
+      input.name = item.qid;
+      input.value = sentinel;
+      const label = h(
+        'label',
+        item.type === 'radio' ? 'form-radio other-option' : 'form-checkbox other-option'
+      );
+      label.appendChild(input);
+      label.appendChild(h('span', null, 'Other — please specify'));
+      block.appendChild(label);
+    }
+    const ta = document.createElement('textarea');
+    ta.className = 'form-textarea other-textarea';
+    ta.id = item.qid + OTHER_SUFFIX;
+    ta.rows = 3;
+    ta.dataset.other = 'true';
+    ta.setAttribute('aria-label', 'Your own answer');
+    ta.placeholder = 'Type your own answer…';
+    block.appendChild(ta);
+    node.dataset.otherValue = sentinel;
+    controls.appendChild(block);
+  }
+
+  function otherInputOf(node) {
+    if (!node.dataset.otherValue) return null;
+    return node.querySelector(
+      `input[name="${CSS.escape(node.dataset.qid)}"][value="${CSS.escape(node.dataset.otherValue)}"]`
+    );
+  }
+
+  // Keeps the Other option and its textarea in sync while typing: text
+  // selects the Other option; clearing it releases the option again.
+  // autoSelect is false for replayed blur 'change' events so they never steal
+  // a predefined selection that was made after typing.
+  function syncOtherText(node, qid, ta, autoSelect) {
+    const has = ta.value.trim() !== '';
+    const otherKey = qid + OTHER_SUFFIX;
+    if (has) state.answers[otherKey] = ta.value;
+    else delete state.answers[otherKey];
+
+    const carrier = otherInputOf(node);
+    if (!carrier) return;
+
+    if (carrier.type === 'radio') {
+      if (has) {
+        if (carrier.checked) {
+          state.answers[qid] = carrier.value;
+        } else if (autoSelect !== false) {
+          carrier.checked = true;
+          state.answers[qid] = carrier.value;
+        }
+        // else: a predefined option is selected — text stays alongside it
+      } else if (state.answers[qid] === carrier.value) {
+        carrier.checked = false;
+        state.answers[qid] = '';
+      }
+      return;
+    }
+
+    carrier.checked = has;
+    const boxes = node.querySelectorAll(
+      `input[type="checkbox"][name="${CSS.escape(qid)}"]`
+    );
+    const values = [];
+    boxes.forEach((box) => {
+      if (box.checked) values.push(box.value);
+    });
+    if (values.length) state.answers[qid] = values;
+    else delete state.answers[qid];
   }
 
   function renderSection(item) {
@@ -141,6 +239,7 @@
       controls.appendChild(label);
     });
 
+    appendOtherBlock(node, item, controls);
     node.appendChild(controls);
     return node;
   }
@@ -167,6 +266,7 @@
       controls.appendChild(label);
     });
 
+    appendOtherBlock(node, item, controls);
     node.appendChild(controls);
     return node;
   }
@@ -450,8 +550,14 @@
         }
       }
 
-      const textarea = node.querySelector('textarea');
+      const textarea = node.querySelector('textarea:not([data-other])');
       if (textarea) textarea.value = typeof answer === 'string' ? answer : '';
+
+      const otherTa = node.querySelector('textarea[data-other]');
+      if (otherTa) {
+        const otherVal = state.answers[qid + OTHER_SUFFIX];
+        otherTa.value = typeof otherVal === 'string' ? otherVal : '';
+      }
 
       if (qid === 'q-contact') {
         const nameInput = node.querySelector('#participant-name');
@@ -470,6 +576,11 @@
     flow.querySelectorAll('[aria-invalid="true"]').forEach((el) => {
       el.removeAttribute('aria-invalid');
     });
+  }
+
+  function otherTextOf(node) {
+    const ta = node.querySelector('textarea[data-other]');
+    return { el: ta, text: ta ? ta.value.trim() : '' };
   }
 
   function checkQuestion(node) {
@@ -496,25 +607,60 @@
       return null;
     }
 
+    const other = otherTextOf(node);
+    const sentinel = node.dataset.otherValue || '';
+
     const radio = node.querySelector('input[type="radio"]');
-    if (
-      radio &&
-      !node.querySelector(`input[name="${CSS.escape(radio.name)}"]:checked`)
-    ) {
-      return { message: node.dataset.error, control: radio };
+    if (radio) {
+      let checked = node.querySelector(
+        `input[name="${CSS.escape(radio.name)}"]:checked`
+      );
+      // Custom text alone counts as an answer — select the Other option for it.
+      if (!checked && other.text && sentinel) {
+        const carrier = node.querySelector(
+          `input[name="${CSS.escape(radio.name)}"][value="${CSS.escape(sentinel)}"]`
+        );
+        if (carrier) {
+          carrier.checked = true;
+          state.answers[node.dataset.qid] = sentinel;
+          checked = carrier;
+        }
+      }
+      if (!checked) {
+        return { message: node.dataset.error, control: radio };
+      }
+      if (sentinel && checked.value === sentinel && !other.text) {
+        return {
+          message: 'Please type your own answer below, or select a different option.',
+          control: other.el
+        };
+      }
+      return null;
     }
 
     const anyBox = node.querySelector('input[type="checkbox"]');
     if (anyBox) {
-      const checked = node.querySelectorAll(
+      const checkedCount = node.querySelectorAll(
         'input[type="checkbox"]:checked'
       ).length;
-      if (checked === 0) {
+      if (sentinel) {
+        const carrier = node.querySelector(
+          `input[name="${CSS.escape(anyBox.name)}"][value="${CSS.escape(sentinel)}"]`
+        );
+        if (carrier && carrier.checked && !other.text) {
+          return {
+            message: 'Please type your own answer below, or untick Other.',
+            control: other.el
+          };
+        }
+      }
+      if (checkedCount === 0 && !other.text) {
         return { message: node.dataset.error, control: anyBox };
       }
+      return null;
     }
 
-    const field = node.querySelector('.form-textarea, .form-input');
+    const field = node.querySelector('.form-textarea:not([data-other]), .form-input');
     if (field && !field.value.trim()) {
       return { message: node.dataset.error, control: field };
     }
@@ -706,7 +852,7 @@
     }
   }
 
-  function captureControl(target) {
+  function captureControl(target, eventType) {
     if (!target || !target.closest) return null;
     const node = target.closest('.flow-item');
     if (!node) return null;
@@ -726,12 +872,24 @@
     }
     if (target.type === 'radio') {
       state.answers[qid] = target.value;
+      if (node.dataset.otherValue && target.value === node.dataset.otherValue) {
+        const ta = node.querySelector('textarea[data-other]');
+        if (ta) ta.focus();
+      }
       return null;
     }
     if (target.type === 'checkbox') {
       if (qid === 'q-consent') {
         state.answers[qid] = target.checked;
         return null;
+      }
+      const isSentinel =
+        !!node.dataset.otherValue && target.value === node.dataset.otherValue;
+      if (isSentinel && !target.checked) {
+        // Unticking Other deliberately cancels its custom text.
+        const ta = node.querySelector('textarea[data-other]');
+        if (ta) ta.value = '';
+        delete state.answers[qid + OTHER_SUFFIX];
       }
       const boxes = node.querySelectorAll(
         `input[type="checkbox"][name="${CSS.escape(target.name)}"]`
@@ -740,10 +898,23 @@
       boxes.forEach((box) => {
         if (box.checked) values.push(box.value);
       });
-      state.answers[qid] = values;
+      if (values.length) state.answers[qid] = values;
+      else delete state.answers[qid];
+      if (isSentinel && target.checked) {
+        const ta = node.querySelector('textarea[data-other]');
+        if (ta) ta.focus();
+      }
       return null;
     }
-    if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') {
+    if (target.tagName === 'TEXTAREA') {
+      if (target.dataset.other === 'true') {
+        syncOtherText(node, qid, target, eventType !== 'change');
+        return null;
+      }
+      state.answers[qid] = target.value;
+      return null;
+    }
+    if (target.tagName === 'INPUT') {
       state.answers[qid] = target.value;
       return null;
     }
@@ -795,14 +966,51 @@
     const seq = getSequence();
     const qids = {};
     seq.forEach((node) => {
-      qids[node.dataset.qid] = true;
+      qids[node.dataset.qid] = node;
     });
+    const isOtherKey = (key) =>
+      key.length > OTHER_SUFFIX.length &&
+      key.slice(-OTHER_SUFFIX.length) === OTHER_SUFFIX;
     const answers = {};
     Object.keys(state.answers).forEach((key) => {
+      if (isOtherKey(key)) return;
       if (qids[key] && key !== 'entry-role' && key !== 'entry-age') {
         answers[key] = state.answers[key];
       }
     });
+
+    // Custom answers: store the text next to its question and keep the Other
+    // option and its text consistent (both present, or neither).
+    Object.keys(qids).forEach((qid) => {
+      const node = qids[qid];
+      const sentinel = node.dataset.otherValue;
+      if (!sentinel || qid === 'entry-role' || qid === 'entry-age') return;
+      const raw = state.answers[qid + OTHER_SUFFIX];
+      const text = typeof raw === 'string' && raw.trim() ? raw : '';
+      if (text) {
+        answers[qid + OTHER_SUFFIX] = text;
+        if (node.dataset.type === 'radio') {
+          if (!answers[qid]) answers[qid] = sentinel;
+        } else if (node.dataset.type === 'checkbox') {
+          const values = Array.isArray(answers[qid]) ? answers[qid].slice() : [];
+          if (values.indexOf(sentinel) === -1) values.push(sentinel);
+          answers[qid] = values;
+        }
+      } else {
+        if (answers[qid] === sentinel) delete answers[qid];
+        if (Array.isArray(answers[qid])) {
+          const filtered = answers[qid].filter((v) => v !== sentinel);
+          if (filtered.length) answers[qid] = filtered;
+          else delete answers[qid];
+        }
+      }
+    });
+    Object.keys(answers).forEach((key) => {
+      if (Array.isArray(answers[key]) && !answers[key].length) {
+        delete answers[key];
+      }
+    });
+
     const isChild = state.role === 'child';
     const auth = readAuthSession() || {};
     const identified = auth.mode === 'email' || auth.mode === 'phone';
@@ -813,7 +1021,7 @@
       isAnonymous: !identified,
       uid: identified && auth.uid ? String(auth.uid) : null,
       submittedAt: new Date().toISOString(),
-      surveyVersion: '2.0'
+      surveyVersion: '2.1'
     };
     if (identified) {
       payload.name = (auth.name || '').trim();
@@ -913,6 +1121,7 @@
       const qid = node.dataset.qid;
       if (qid === 'entry-role' || qid === 'entry-age' || qid === 'q-anonymous') return;
       expectedQids.push(qid);
+      if (node.dataset.otherValue) expectedQids.push(qid + OTHER_SUFFIX);
       const required = node.dataset.required === 'true';
       if (required) audit.expectedRequired++;
       if (qid === 'q-contact') {
@@ -924,6 +1133,11 @@
         return;
       }
       const has = Object.prototype.hasOwnProperty.call(payload.answers, qid);
+      const otherVal = payload.answers[qid + OTHER_SUFFIX];
+      const otherOk = typeof otherVal === 'string' && otherVal.trim().length > 0;
+      if (otherVal !== undefined && !otherOk) {
+        audit.issues.push('custom answer not text: ' + qid);
+      }
       if (!has) {
         if (required) audit.issues.push('missing required: ' + qid);
         return;
@@ -954,6 +1168,14 @@
       } else if (typeof v !== 'string') {
         audit.issues.push('type: ' + qid + ' expected string');
       }
+      if (node.dataset.otherValue) {
+        const usesCustom =
+          (typeof v === 'string' && v === node.dataset.otherValue) ||
+          (Array.isArray(v) && v.indexOf(node.dataset.otherValue) !== -1);
+        if (usesCustom && !otherOk) {
+          audit.issues.push('missing custom answer text: ' + qid);
+        }
+      }
     });
     audit.unexpected = Object.keys(payload.answers).filter((k) => expectedQids.indexOf(k) === -1);
     audit.unexpected.forEach((k) => audit.issues.push('unexpected answer: ' + k));
@@ -975,7 +1197,7 @@
     btnBack.addEventListener('click', goBack);
 
     flow.addEventListener('input', (e) => {
-      captureControl(e.target);
+      captureControl(e.target, 'input');
       if (e.target.getAttribute('aria-invalid') === 'true') {
         e.target.removeAttribute('aria-invalid');
         clearError();
@@ -984,7 +1206,7 @@
     });
 
     flow.addEventListener('change', (e) => {
-      const kind = captureControl(e.target);
+      const kind = captureControl(e.target, 'change');
       if (kind === 'sequence') {
         syncAnonymous();
         const el = currentElement();

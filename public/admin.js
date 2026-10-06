@@ -28,6 +28,16 @@
 
   var responses = [];
   var questionIndex = null;
+  // Custom answers are stored beside their question as "<qid>-other".
+  var OTHER_SUFFIX = '-other';
+
+  function isOtherKey(key) {
+    return (
+      typeof key === 'string' &&
+      key.length > OTHER_SUFFIX.length &&
+      key.slice(-OTHER_SUFFIX.length) === OTHER_SUFFIX
+    );
+  }
 
   // Accept current and legacy response shapes defensively (older records may
   // be missing identity fields entirely).
@@ -86,6 +96,7 @@
   }
 
   function optionLabel(qid, value) {
+    if (value === '__other__') return 'Other — please specify';
     var q = questionFor(qid);
     if (q && Array.isArray(q.options)) {
       for (var i = 0; i < q.options.length; i++) {
@@ -167,6 +178,7 @@
       }
       if (r.status === 200 && Array.isArray(r.data.responses)) {
         responses = r.data.responses.map(normalize);
+        showDashboard(); // valid session — skip the login screen
         renderAll();
         return;
       }
@@ -329,9 +341,15 @@
       detailAnswers.appendChild(el('p', 'answer-value', 'No answers recorded.'));
     }
     qids.forEach(function (qid) {
+      if (isOtherKey(qid)) return; // rendered with its question below
       var block = el('div', 'answer-block');
       block.appendChild(el('p', 'answer-question', questionLabel(qid)));
       block.appendChild(renderAnswerValue(qid, r.answers[qid]));
+      var otherText = r.answers[qid + OTHER_SUFFIX];
+      if (typeof otherText === 'string' && otherText.trim()) {
+        block.appendChild(el('p', 'answer-other-label', 'Their own answer (custom)'));
+        block.appendChild(el('p', 'answer-value answer-other', otherText));
+      }
       detailAnswers.appendChild(block);
     });
 

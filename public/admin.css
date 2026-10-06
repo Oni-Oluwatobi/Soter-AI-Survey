@@ -506,6 +506,21 @@ body {
 
 .answer-value ul { margin: 0; padding-left: 18px; }
 
+/* User-provided custom answer, shown under its predefined selection */
+.answer-other-label {
+  margin: 10px 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary, #5A6C77);
+}
+
+.answer-other {
+  border-left: 3px solid var(--spring-meadow, #CAFFA6);
+  padding-left: 10px;
+}
+
 /* Responsive */
 @media (max-width: 920px) {
   .stats-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
